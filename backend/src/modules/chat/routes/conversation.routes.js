@@ -1,0 +1,14 @@
+const express = require("express");
+
+
+const conversationController = require("../controllers/conversation.controller");
+
+const { protect } = require("../../auth/auth.middleware");
+const router = express.Router();
+
+
+router.post("/", protect, conversationController.createConversation);
+
+router.get("/", protect, conversationController.getUserConversations);
+
+module.exports = router;

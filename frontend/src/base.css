@@ -1,0 +1,108 @@
+@import url('https://fonts.googleapis.com/css2?family=Jersey+10&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Abhaya+Libre:wght@400;700&display=swap');
+:root {
+    --color-primary: #181824;
+    --color-secondary: #6c00fe;
+    --color-secondary-rgb: 108, 0, 254;
+    --color-background: #0b0416;
+    --color-text-dark: #000;
+    --color-text-light: #ffffff;
+    --color-text-placeholder: #4b5563;
+    --color-error: #ff3d71;
+    --color-error-rgb: 255, 61, 113;
+    --color-warning: #f59e0b;
+    --color-warning-rgb: 245, 158, 11;
+    --color-success: #10b981;
+    --color-success-rgb: 16, 185, 129;
+
+    --color-transparent: rgba(0, 0, 0, 0);
+
+    --color-bg-opacity: 0.1;
+    --color-border-opacity: 0.3;
+
+    --color-error-bg:rgba(var(--color-error-rgb), var(--color-bg-opacity));
+    --color-warning-bg:rgba(var(--color-warning-rgb), var(--color-bg-opacity));
+    --color-success-bg:rgba(var(--color-success-rgb), var(--color-bg-opacity));
+
+    --border-error:1px solid rgba(var(--color-error-rgb), var(--color-border-opacity));
+    --border-warning:1px solid rgba(var(--color-warning-rgb), var(--color-border-opacity));
+    --border-success:1px solid rgba(var(--color-success-rgb), var(--color-border-opacity));
+
+    --color-input-bg: #f9f9f9;
+    --color-input-border: rgba(108, 0, 255, 0.15);
+
+    --card-bg: #181824;
+
+    --login-bg: url('../assets/login-bg.png') no-repeat center center fixed;
+
+    --logo-box: 60px;
+
+
+    --font-family: 'Jersey 10', sans-serif;
+
+    --title-font-family: 'Abhaya Libre', sans-serif;
+    --title-font-size: 3.5rem;
+    --font-size-base: 1rem;
+    --font-size-large: 1.25rem;
+    --font-size-larger: 1.5rem;
+    --font-size-small: 0.875rem;
+    --font-size-message: 0.95rem;
+
+    --font-weight-light: 300;
+    --font-weight-regular: 400;
+    --font-weight-medium: 500;
+    --font-weight-bold: 700;
+
+    --border-radius: 20px;
+    --box-shadow: 2px 2px 30px rgba(var(--color-secondary-rgb), 0.25);
+
+    --card-padding: 2rem;
+
+    --small-padding: 8px;
+    --medium-padding: 16px;
+
+
+    --full-screen-height: 100dvh;
+    --full-screen-width: 100dvw;
+
+    --full-percent: 100%;
+
+
+    --login-width: 400px;
+
+
+    --border-not-hovered: 2.5px solid rgba(var(--color-secondary-rgb), 0.1);
+    --border-hovered: 2.5px solid rgba(var(--color-secondary-rgb), 0.8);
+
+
+    --transition-duration: 0.9s;
+    --transition-easing: ease;
+
+    --animation-duration: 3s;
+
+
+}
+
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.5;
+    transform: scale(1.1);
+  }
+}
+
+
+@keyframes pulse-shadow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(var(--color-secondary-rgb), 0.25);
+  }
+
+  50% {
+    box-shadow: 0 0 25px rgba(var(--color-secondary-rgb), 0.1);
+  }
+}
