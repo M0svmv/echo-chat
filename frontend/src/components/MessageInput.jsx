@@ -1,42 +1,89 @@
 import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+
 import api from "../api/axios";
-import { useSelector } from "react-redux";
-import  socket  from "../socket/socket";
+import { addMessage } from "../features/chat/chatSlice";
 
 export default function MessageInput() {
+  const dispatch = useDispatch();
+
   const [text, setText] = useState("");
-  const active = useSelector(
+
+  const activeConversation = useSelector(
     (state) => state.chat.activeConversation
   );
 
+  const user = useSelector(
+    (state) => state.auth.user
+  );
+
   const sendMessage = async () => {
-    if (!active || !text) return;
+    try {
+      if (!activeConversation) return;
 
-    const receiverId = active.participants.find(
-      (p) => p._id !== "MY_USER_ID"
-    );
+      if (!text.trim()) return;
 
-    const res = await api.post("/messages", {
-      conversationId: active._id,
-      text,
-      receiverId: receiverId._id,
-    });
+      const receiver = activeConversation.participants.find(
+        (participant) => participant._id !== user._id
+      );
 
-    socket.emit("test-message", {
-      message: text,
-    });
+      if (!receiver) {
+        console.error("Receiver not found");
+        return;
+      }
 
-    setText("");
+      const response = await api.post("/messages", {
+        conversationId: activeConversation._id,
+        text,
+        receiverId: receiver._id,
+      });
+
+      dispatch(addMessage(response.data));
+
+      setText("");
+    } catch (error) {
+      console.error("Send Message Error:", error);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      sendMessage();
+    }
   };
 
   return (
-    <div style={{ display: "flex", padding: 10 }}>
+    <div
+      style={{
+        display: "flex",
+        gap: "10px",
+        padding: "15px",
+        borderTop: "1px solid #ddd",
+      }}
+    >
       <input
+        type="text"
+        placeholder="Type a message..."
         value={text}
         onChange={(e) => setText(e.target.value)}
-        style={{ flex: 1 }}
+        onKeyDown={handleKeyDown}
+        style={{
+          flex: 1,
+          padding: "10px",
+          border: "1px solid #ccc",
+          borderRadius: "8px",
+        }}
       />
-      <button onClick={sendMessage}>Send</button>
+
+      <button
+        onClick={sendMessage}
+        style={{
+          padding: "10px 20px",
+          cursor: "pointer",
+        }}
+      >
+        Send
+      </button>
     </div>
   );
 }
