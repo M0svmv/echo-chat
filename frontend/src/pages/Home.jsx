@@ -1,7 +1,9 @@
 import { useEffect } from "react";
-import ConversationsList from "../components/ConversationsList";
+// import ConversationsList from "../components/ConversationsList";
 import MessagesList from "../components/MessagesList";
 import MessageInput from "../components/MessageInput";
+
+import Sidebar from "../components/Sidebar";
 
 import socket from "../socket/socket";
 import { useDispatch, useSelector } from "react-redux";
@@ -38,7 +40,7 @@ export default function Chat() {
 
   return (
     <div style={{ display: "flex", height: "100vh" }}>
-      <ConversationsList />
+      <Sidebar />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
         <MessagesList />

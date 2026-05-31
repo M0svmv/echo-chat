@@ -6,10 +6,11 @@ import { setMessages } from "../features/chat/chatSlice";
 
 export default function MessagesList() {
   const dispatch = useDispatch();
+
   const messages = useSelector((state) => state.chat.messages);
   const active = useSelector((state) => state.chat.activeConversation);
+  const currentUser = useSelector((state) => state.auth.user);
 
-  // ✅ جيب الـ messages من الـ DB لما الـ conversation تتغير
   useEffect(() => {
     if (!active) return;
 
@@ -23,20 +24,28 @@ export default function MessagesList() {
     };
 
     fetchMessages();
-  }, [active?._id]);
-
-  // ✅ اسمع على الـ messages الجاية من الـ socket
-  
+  }, [active?._id, dispatch]);
 
   if (!active) return <div>Select a chat</div>;
 
   return (
-    <div style={{ flex: 1, padding: 10 }}>
-      {messages.map((msg) => (
-        <div key={msg._id}>
-          <b>{msg.sender?.username ?? msg.sender}</b>: {msg.text}
-        </div>
-      ))}
+    <div className="chatContainer">
+      {messages.map((msg) => {
+        const isMine = msg.sender?._id === currentUser?._id;
+
+        return (
+          <div
+            key={msg._id}
+            className={`message ${isMine ? "mine" : "theirs"}`}
+          >
+            <div className="sender">
+              {msg.sender?.username ?? "Unknown"}
+            </div>
+
+            <div className="text">{msg.text}</div>
+          </div>
+        );
+      })}
     </div>
   );
 }

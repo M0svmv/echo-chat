@@ -37,6 +37,7 @@
 
     --logo-box: 60px;
 
+    
 
     --font-family: 'Jersey 10', sans-serif;
 
@@ -65,8 +66,14 @@
     --full-screen-height: 100dvh;
     --full-screen-width: 100dvw;
 
+    --sidebar-width: 27dvw;
     --full-percent: 100%;
 
+
+    --min-width: 350px;
+    --max-width: 400px;
+
+    --avatar-size: 50px;
 
     --login-width: 400px;
 
