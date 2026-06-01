@@ -9,9 +9,14 @@ import './App.css'
 import {BrowserRouter ,Routes, Route} from 'react-router-dom';
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
-import Chat from "./pages/Home.jsx";
+
 
 import ProtectedRoute from './routes/ProtectedRoute.jsx';
+import Home from './pages/Home.jsx';
+import UiLayout from './layouts/UiLayout.jsx';
+import ChatWindow from './components/ChatWindow.jsx';
+
+
 
 function App() {
 
@@ -49,7 +54,13 @@ function App() {
         
         <Route path='/login' element={<Login />} />
         <Route path='/register' element={<Register />} />
-        <Route path='/' element={<ProtectedRoute><Chat /></ProtectedRoute>} />
+        <Route element={<ProtectedRoute />} >
+        <Route element={<UiLayout />} >
+        <Route path='/' element={<Home />} >
+        <Route index element={<ChatWindow />} />
+        </Route>
+        </Route>
+        </Route>
       </Routes>
     </BrowserRouter>
     </>

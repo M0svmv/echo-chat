@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 // import ConversationsList from "../components/ConversationsList";
-import MessagesList from "../components/MessagesList";
-import MessageInput from "../components/MessageInput";
+// import MessagesList from "../components/MessagesList";
+// import MessageInput from "../components/MessageInput";
 
 import Sidebar from "../components/Sidebar";
 
@@ -9,7 +9,10 @@ import socket from "../socket/socket";
 import { useDispatch, useSelector } from "react-redux";
 import { addMessage } from "../features/chat/chatSlice";
 
-export default function Chat() {
+import { Outlet } from "react-router-dom";
+
+
+export default function Home() {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
 
@@ -39,13 +42,16 @@ export default function Chat() {
   }, [user?._id]);
 
   return (
-    <div style={{ display: "flex", height: "100vh" }}>
+    <>
+
       <Sidebar />
 
-      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+      <Outlet />
+
+      {/* <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
         <MessagesList />
         <MessageInput />
-      </div>
-    </div>
+      </div> */}
+    </>
   );
 }

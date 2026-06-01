@@ -1,0 +1,157 @@
+@import "../base.css";
+
+.sidebar{
+    display: flex;
+    flex-direction: column;
+    height: var(--full-percent);
+    width: var(--sidebar-width);
+    gap: var(--small-padding);
+}
+
+.sidebar .sidebar-header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--medium-padding);
+    
+    width: var(--full-percent);
+    border-radius: var(--border-radius);
+    gap: var(--small-padding);
+    
+    height: var(--logo-box);
+    background: var(--color-primary);
+    
+}
+
+.sidebar-header .logo{
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    gap: var(--medium-padding);
+    position: relative;
+    width: var(--avatar-size);
+    height: var(--avatar-size);
+    color: var(--color-text-light);
+    font-weight: var(--font-weight-medium);
+    font-size: var(--font-size-h3);
+    width: 40%;
+    
+}
+
+.sidebar .sidebar-header img{
+    height: 80%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-larger);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-light);
+}
+
+.more{
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-larger);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-light);
+    cursor: pointer;
+}
+
+.chatsContainer{
+    display: flex;
+    flex-direction: column;
+    padding: var(--small-padding);
+    height: var(--full-percent);
+    width: var(--full-percent);
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    gap: var(--small-padding);
+   
+}
+
+.searchBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--tiny-padding);
+    position: relative;
+    height: var(--avatar-size);
+}
+
+.searchBar input{
+    
+    width: var(--full-percent);
+    height: var(--full-percent);
+
+    padding: var(--medium-padding);
+    font-size: 14px;
+    color: var(--color-text-dark);
+    outline: none;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+    border-radius: 15px;
+    border: none;
+    background: var(--color-input-bg);
+}
+
+.searchBar .searchButton {
+    
+    height: var(--full-percent);
+    aspect-ratio: 1/1;
+    border-radius: 15px;
+    background: var(--color-tertiary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    color: var(--color-text-light);
+    font-size: var(--font-size-large);
+
+    
+}
+
+.chatsContainer h3 {
+    margin-bottom: var(--medium-padding);
+    color: var(--color-text-light);
+    font-size: var(--font-size-largest);
+    
+}
+
+.chatsContainer ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--small-padding);
+}
+
+.chatsContainer li {
+    padding: var(--small-padding);
+    width: 100%;
+    height: 65px;
+    cursor: pointer;
+    transition: background var(--transition-duration) var(--transition-easing);
+    color: var(--color-text-light);
+
+    background: rgba(var(--color-secondary-rgb), 0.1);
+    display: flex;
+    align-items: center;
+    gap: var(--small-padding);
+    border-radius: var(--border-radius);
+}
+
+.chatAvatar {
+    width: var(--avatar-size);
+    height: var(--avatar-size);
+    border-radius: 15px;
+    background: var(--color-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-larger);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-light);
+}

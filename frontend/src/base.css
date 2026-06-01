@@ -1,13 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Jersey+10&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Abhaya+Libre:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Changa:wght@200..800&display=swap');
 :root {
     --color-primary: #181824;
     --color-secondary: #6c00fe;
     --color-secondary-rgb: 108, 0, 254;
+    --color-tertiary: #5865F2;
     --color-background: #0b0416;
     --color-text-dark: #000;
     --color-text-light: #ffffff;
     --color-text-placeholder: #4b5563;
+    --color-msg-bg: #f9f9f9;
+    --color-msg-bg-2: #1e293b;
     --color-error: #ff3d71;
     --color-error-rgb: 255, 61, 113;
     --color-warning: #f59e0b;
@@ -40,12 +44,16 @@
     
 
     --font-family: 'Jersey 10', sans-serif;
+    --font-family-msg: 'inter', sans-serif;
+    --font-family-arabic: 'Changa', sans-serif;
 
     --title-font-family: 'Abhaya Libre', sans-serif;
     --title-font-size: 3.5rem;
     --font-size-base: 1rem;
     --font-size-large: 1.25rem;
     --font-size-larger: 1.5rem;
+    --font-size-largest: 2rem;
+    --font-size-h3: 2.5rem;
     --font-size-small: 0.875rem;
     --font-size-message: 0.95rem;
 
@@ -58,10 +66,17 @@
     --box-shadow: 2px 2px 30px rgba(var(--color-secondary-rgb), 0.25);
 
     --card-padding: 2rem;
-
+    --tiny-padding: 4px;
     --small-padding: 8px;
     --medium-padding: 16px;
 
+    --msg-gap: 10px;
+
+    --msg-detail-font: 10px;
+
+
+    --navbar-width: 65px;
+    --navbar-height: 100dvh;
 
     --full-screen-height: 100dvh;
     --full-screen-width: 100dvw;

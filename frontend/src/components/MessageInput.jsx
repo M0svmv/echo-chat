@@ -4,6 +4,8 @@ import { useDispatch, useSelector } from "react-redux";
 import api from "../api/axios";
 import { addMessage } from "../features/chat/chatSlice";
 
+import '../styles/messageInput.css';
+
 export default function MessageInput() {
   const dispatch = useDispatch();
 
@@ -53,13 +55,8 @@ export default function MessageInput() {
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        gap: "10px",
-        padding: "15px",
-        borderTop: "1px solid #ddd",
-      }}
+    <div className="message-input-container"
+      
     >
       <input
         type="text"

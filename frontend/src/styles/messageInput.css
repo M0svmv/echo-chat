@@ -1,0 +1,12 @@
+@import '../base.css';
+
+.message-input-container{
+    display: flex;
+    flex-direction: row;
+    gap: var(--small-padding);
+    padding: var(--medium-padding);
+    background: var(--color-primary);
+    border-radius: var(--border-radius);
+    align-items: center;
+    justify-content: space-between;
+}

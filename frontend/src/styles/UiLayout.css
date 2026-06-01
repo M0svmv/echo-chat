@@ -1,0 +1,11 @@
+@import '../base.css';
+
+.ui-layout{
+    display: flex;
+    flex-direction: row;
+    width: var(--full-screen-width);
+    height: var(--full-screen-height);
+    overflow: hidden;
+    padding: var(--small-padding);
+    gap: var(--small-padding);
+}

@@ -3,7 +3,9 @@ import { useSelector, useDispatch } from "react-redux";
 import api from "../api/axios";
 
 import { setMessages } from "../features/chat/chatSlice";
+import "../styles/messagesList.css";
 
+import {FaCheck,FaCheckDouble} from "react-icons/fa"
 export default function MessagesList() {
   const dispatch = useDispatch();
 
@@ -38,11 +40,26 @@ export default function MessagesList() {
             key={msg._id}
             className={`message ${isMine ? "mine" : "theirs"}`}
           >
-            <div className="sender">
-              {msg.sender?.username ?? "Unknown"}
-            </div>
+
+          {!isMine && <div className="sender">{msg.sender.firstName + " " + msg.sender.lastName}</div>}
+            
 
             <div className="text">{msg.text}</div>
+
+            <div className="send-details">
+            <div className={`timestamp ${isMine ? "mine" : "theirs"}`}>
+              {new Date(msg.createdAt).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  })}
+            </div>
+            {isMine &&<div className="seen">{
+              msg.seen
+                ? <FaCheckDouble/>
+                : <FaCheck/>
+            }</div>}
+            
+            </div>
           </div>
         );
       })}

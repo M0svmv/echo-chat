@@ -1,22 +1,12 @@
+import MessagesList from "./MessagesList";
+import MessageInput from "./MessageInput";
+
+import "../styles/chatWindow.css";
 export default function ChatWindow() {
   return (
-    <section className="chat-window">
-      <div className="chat-header">
-        Select a conversation
-      </div>
-
-      <div className="messages">
-        No chat selected
-      </div>
-
-      <div className="message-input">
-        <input
-          type="text"
-          placeholder="Type a message..."
-        />
-
-        <button>Send</button>
-      </div>
-    </section>
+    <div className="chatWindow" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+      <MessagesList />
+      <MessageInput />
+    </div>
   );
 }
