@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useRef, useEffect, useState  } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import api from "../api/axios";
 
@@ -18,6 +18,29 @@ export default function MessagesList() {
   const active = useSelector((state) => state.chat.activeConversation);
   const currentUser = useSelector((state) => state.auth.user);
   const receiver = active?.participants.find((p) => p._id !== currentUser?._id);
+  const messagesRef = useRef(null);
+const [isAtBottom, setIsAtBottom] = useState(true);
+
+useEffect(() => {
+  const container = messagesRef.current;
+
+  const handleScroll = () => {
+    const threshold = 100;
+
+    const atBottom =
+      container.scrollHeight -
+        container.scrollTop -
+        container.clientHeight <
+      threshold;
+
+    setIsAtBottom(atBottom);
+  };
+
+  container.addEventListener("scroll", handleScroll);
+
+  return () =>
+    container.removeEventListener("scroll", handleScroll);
+}, []);
   
   useEffect(() => {
     if (!active) return;
@@ -34,7 +57,25 @@ export default function MessagesList() {
     fetchMessages();
   }, [active?._id, dispatch]);
 
+  useEffect(() => {
+  if (!messagesRef.current) return;
+
+  messagesRef.current.scrollTop =
+    messagesRef.current.scrollHeight;
+}, [active?._id]);
+
+useEffect(() => {
+  if (!messagesRef.current) return;
+
+  if (isAtBottom) {
+    messagesRef.current.scrollTop =
+      messagesRef.current.scrollHeight;
+  }
+}, [messages, isAtBottom]);
+
   if (!active) return <NotSelectedChat />;
+
+  
 
   return (
     <div className="chatContainer">
@@ -53,7 +94,7 @@ export default function MessagesList() {
     <div className="more-options"><FiMoreVertical /></div>
     </div>
     </div>
-    <div className="messages-container">
+    <div className="messages-container" ref={messagesRef}>
       {messages.map((msg) => {
         const isMine = msg.sender?._id === currentUser?._id;
 
