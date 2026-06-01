@@ -5,7 +5,10 @@ import api from "../api/axios";
 import { setMessages } from "../features/chat/chatSlice";
 import "../styles/messagesList.css";
 
-import {FaCheck,FaCheckDouble} from "react-icons/fa";
+import {FaCheck,FaCheckDouble,FaSearch} from "react-icons/fa";
+import { FaPhone,FaVideo } from "react-icons/fa6";
+
+import { FiMoreVertical } from "react-icons/fi";
 
 import NotSelectedChat from "./NotSelectedChat";
 export default function MessagesList() {
@@ -14,7 +17,8 @@ export default function MessagesList() {
   const messages = useSelector((state) => state.chat.messages);
   const active = useSelector((state) => state.chat.activeConversation);
   const currentUser = useSelector((state) => state.auth.user);
-
+  const receiver = active?.participants.find((p) => p._id !== currentUser?._id);
+  
   useEffect(() => {
     if (!active) return;
 
@@ -34,6 +38,22 @@ export default function MessagesList() {
 
   return (
     <div className="chatContainer">
+
+    <div className="chat-container-header">
+    <div className="receiver-details">
+      {receiver.avatar ? <div className="receiver-img"><img src={receiver.avatar} alt="Profile" /></div> : <div className="avatar-placeholder">
+    {receiver.firstName.charAt(0) + receiver.lastName.charAt(0)}
+    </div>}
+    <div className="receiver">{receiver.firstName + " " + receiver.lastName}</div>
+    </div>
+    <div className="chat-actions">
+    <div className="call"><FaPhone /></div>
+    <div className="video"><FaVideo /></div>
+    <div className="search"><FaSearch /></div>
+    <div className="more-options"><FiMoreVertical /></div>
+    </div>
+    </div>
+    <div className="messages-container">
       {messages.map((msg) => {
         const isMine = msg.sender?._id === currentUser?._id;
 
@@ -62,9 +82,12 @@ export default function MessagesList() {
             }</div>}
             
             </div>
+            
           </div>
+          
         );
       })}
+      </div>
     </div>
   );
 }

@@ -43,6 +43,8 @@
     --logo-box: 60px;
 
     --header-height: 75px;
+    --header-height-large: 90px;
+    --header-height-mobile: 55px;
 
     --chat-item-height:65px;
 
@@ -66,14 +68,18 @@
     --font-weight-bold: 700;
 
     --border-radius: 20px;
+    --border-radius-sqr: 15px;
+    --border-radius-circle: 50%;
     --box-shadow: 2px 2px 30px rgba(var(--color-secondary-rgb), 0.25);
 
     --card-padding: 2rem;
     --tiny-padding: 4px;
     --small-padding: 8px;
     --medium-padding: 16px;
+    --large-padding: 32px;
+    --extra-large-padding: 64px;
 
-    --msg-gap: 10px;
+    --msg-gap: 3px;
 
     --msg-detail-font: 10px;
 
@@ -81,11 +87,15 @@
     --navbar-width: 65px;
     --navbar-height: 100dvh;
 
+    --nav-item-box: 50px;
+    
+
     --full-screen-height: 100dvh;
     --full-screen-width: 100dvw;
 
     --sidebar-width: 27dvw;
     --full-percent: 100%;
+    --part-percent: 80%;
 
 
     --min-width: 350px;

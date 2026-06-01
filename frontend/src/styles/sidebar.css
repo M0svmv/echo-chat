@@ -116,7 +116,7 @@
     
     height: var(--full-percent);
     aspect-ratio: 1/1;
-    border-radius: 15px;
+    border-radius: var(--border-radius-sqr);
     background: var(--color-tertiary);
     cursor: pointer;
     display: flex;
@@ -168,7 +168,7 @@
 .chatAvatar {
     width: var(--avatar-size);
     height: var(--avatar-size);
-    border-radius: 15px;
+    border-radius: var(--border-radius-sqr);
     background: var(--color-secondary);
     display: flex;
     align-items: center;

@@ -24,12 +24,12 @@
 
 
 .not-selected-container img {
-    width: 250px;
+    width: 200px;
     
 }
 
 .not-selected-title{
-    font-size: var(--font-size-h3);
+    font-size: var(--title-font-size);
     font-weight: var(--font-weight-medium);
     color: var(--color-text-light);
 }
