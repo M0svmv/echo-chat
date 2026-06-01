@@ -1,6 +1,6 @@
 import '../styles/navbar.css';
 
-import {FiHome,FiBell,FiUsers,FiUserPlus,FiArchive,FiSettings,FiUser} from 'react-icons/fi'
+import {FiHome,FiBell,FiUsers,FiUserPlus,FiArchive,FiSettings} from 'react-icons/fi'
 
 import { useSelector } from "react-redux";
 export default function Navbar() {

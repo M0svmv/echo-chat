@@ -8,6 +8,21 @@ const conversationSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
+
+    lastMessage: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Message",
+  },
+  unreadCounts: [{
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    count: {
+      type: Number,
+      default: 0,
+    },
+  }],
   },
   { timestamps: true }
 );

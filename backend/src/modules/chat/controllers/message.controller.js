@@ -33,7 +33,10 @@ exports.sendMessage = async (req, res) => {
         const message = await newMessage.populate("sender", "firstName lastName username");
 
         conversation.updatedAt = Date.now();
+        conversation.lastMessage = message._id;
         await conversation.save();
+
+        
 
         if (receiverId) {
             const receiverSocketId = onlineUsers?.get(receiverId);
