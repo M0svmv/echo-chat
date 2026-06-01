@@ -5,7 +5,9 @@ import api from "../api/axios";
 import { setMessages } from "../features/chat/chatSlice";
 import "../styles/messagesList.css";
 
-import {FaCheck,FaCheckDouble} from "react-icons/fa"
+import {FaCheck,FaCheckDouble} from "react-icons/fa";
+
+import NotSelectedChat from "./NotSelectedChat";
 export default function MessagesList() {
   const dispatch = useDispatch();
 
@@ -28,7 +30,7 @@ export default function MessagesList() {
     fetchMessages();
   }, [active?._id, dispatch]);
 
-  if (!active) return <div>Select a chat</div>;
+  if (!active) return <NotSelectedChat />;
 
   return (
     <div className="chatContainer">

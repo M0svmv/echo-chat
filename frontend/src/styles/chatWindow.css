@@ -1,7 +1,7 @@
 @import "../base.css";
 
 .chatWindow{
-    flex: 1;
+    
     width: var(--full-percent);
     height: var(--full-percent);
     
@@ -10,5 +10,6 @@
     gap: var(--msg-gap);
     overflow-y: auto;
     
+    animation: pulse-shadow var(--animation-duration) infinite var(--transition-easing);
     border-radius: var(--border-radius);
 }

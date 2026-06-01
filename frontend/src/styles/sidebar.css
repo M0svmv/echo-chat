@@ -6,6 +6,7 @@
     height: var(--full-percent);
     width: var(--sidebar-width);
     gap: var(--small-padding);
+    
 }
 
 .sidebar .sidebar-header{
@@ -18,9 +19,16 @@
     border-radius: var(--border-radius);
     gap: var(--small-padding);
     
-    height: var(--logo-box);
+    height: var(--header-height);
     background: var(--color-primary);
-    
+    animation: pulse-shadow var(--animation-duration) infinite var(--transition-easing);
+    border: var(--border-not-hovered);
+  transition: border var(--transition-duration) var(--transition-easing);
+}
+
+.sidebar .sidebar-header:hover{
+    border: var(--border-hovered);
+  
 }
 
 .sidebar-header .logo{
@@ -69,7 +77,14 @@
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
     gap: var(--small-padding);
-   
+    animation: pulse-shadow var(--animation-duration) infinite var(--transition-easing);
+   border: var(--border-not-hovered);
+  transition: border var(--transition-duration) var(--transition-easing);
+}
+
+.chatsContainer:hover{
+    border: var(--border-hovered);
+  
 }
 
 .searchBar {
@@ -115,7 +130,7 @@
 }
 
 .chatsContainer h3 {
-    margin-bottom: var(--medium-padding);
+    
     color: var(--color-text-light);
     font-size: var(--font-size-largest);
     
@@ -128,19 +143,26 @@
     gap: var(--small-padding);
 }
 
-.chatsContainer li {
+.chatsContainer .chatItem {
     padding: var(--small-padding);
-    width: 100%;
-    height: 65px;
+    width: var(--full-percent);
+    height: var(--chat-item-height);
     cursor: pointer;
     transition: background var(--transition-duration) var(--transition-easing);
-    color: var(--color-text-light);
+    color: var(--color-primary);
 
-    background: rgba(var(--color-secondary-rgb), 0.1);
+    background: var(--color-msg-bg);
     display: flex;
     align-items: center;
     gap: var(--small-padding);
     border-radius: var(--border-radius);
+}
+
+.username-tag{
+    font-size: var(--font-size-small);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-placeholder);
+    
 }
 
 .chatAvatar {

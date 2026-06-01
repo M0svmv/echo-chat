@@ -38,10 +38,13 @@
     --card-bg: #181824;
 
     --login-bg: url('../assets/login-bg.png') no-repeat center center fixed;
+    --system-bg: url('../assets/login-bg.png') no-repeat center center fixed;
 
     --logo-box: 60px;
 
-    
+    --header-height: 75px;
+
+    --chat-item-height:65px;
 
     --font-family: 'Jersey 10', sans-serif;
     --font-family-msg: 'inter', sans-serif;
@@ -91,6 +94,9 @@
     --avatar-size: 50px;
 
     --login-width: 400px;
+
+    --message-input-height: 5rem;
+    --message-input-height-text: 4rem;
 
 
     --border-not-hovered: 2.5px solid rgba(var(--color-secondary-rgb), 0.1);

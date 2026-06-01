@@ -15,6 +15,7 @@ export default function ConversationsList() {
   const conversations = useSelector(
     (state) => state.chat.conversations
   );
+  const currentUser = useSelector((state) => state.auth.user);
 
   useEffect(() => {
     const fetchConversations = async () => {
@@ -57,7 +58,16 @@ export default function ConversationsList() {
             />
           )}
         </div>
-          {conv.participants.map((p) => `${p.firstName } ${p.lastName}` ).join(", ")}
+          {
+  conv.participants
+    .filter((p) => p._id !== currentUser._id)
+    .map((p) => (
+      <div key={p._id} className="chatInfo">
+        {p.firstName} {p.lastName}
+        <span className="username-tag"> @{p.username}</span>
+      </div>
+    ))
+}
         </li>
         
       ))}

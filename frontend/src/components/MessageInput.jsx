@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
+
 import { useDispatch, useSelector } from "react-redux";
 
 import api from "../api/axios";
@@ -6,7 +7,26 @@ import { addMessage } from "../features/chat/chatSlice";
 
 import '../styles/messageInput.css';
 
+import { IoPaperPlaneOutline }  from "react-icons/io5" ;
+
+import { FaPaperclip } from "react-icons/fa6";
+
 export default function MessageInput() {
+
+  const textareaRef = useRef(null);
+
+const handleChange = (e) => {
+  setText(e.target.value);
+
+  e.target.style.height = "auto";
+  e.target.style.height = `${e.target.scrollHeight}px`;
+};
+
+const handleBlur = (e) => {
+  if (!text.trim()) {
+    e.target.style.height = "var(--avatar-size)";
+  }
+};
   const dispatch = useDispatch();
 
   const [text, setText] = useState("");
@@ -18,6 +38,8 @@ export default function MessageInput() {
   const user = useSelector(
     (state) => state.auth.user
   );
+
+  if (!activeConversation) return;
 
   const sendMessage = async () => {
     try {
@@ -49,37 +71,36 @@ export default function MessageInput() {
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      sendMessage();
-    }
+    if (e.key !== "Enter") return;
+
+  if (e.shiftKey) return;
+
+  e.preventDefault();
+  sendMessage();
   };
 
   return (
     <div className="message-input-container"
       
     >
-      <input
-        type="text"
-        placeholder="Type a message..."
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        onKeyDown={handleKeyDown}
-        style={{
-          flex: 1,
-          padding: "10px",
-          border: "1px solid #ccc",
-          borderRadius: "8px",
-        }}
-      />
+      <button className="message-attach-button">
+        <FaPaperclip />
+      </button>
+      <textarea
+  ref={textareaRef}
+  className="message-input"
+  placeholder="Type a message..."
+  value={text}
+  onChange={handleChange}
+  onBlur={handleBlur}
+  onKeyDown={handleKeyDown}
+/>
 
-      <button
+      <button className="message-send-button"
         onClick={sendMessage}
-        style={{
-          padding: "10px 20px",
-          cursor: "pointer",
-        }}
+        
       >
-        Send
+        <IoPaperPlaneOutline />
       </button>
     </div>
   );

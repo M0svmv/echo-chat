@@ -13,6 +13,16 @@
   overflow-y: auto;
   background: var(--color-primary); 
   border-radius: var(--border-radius);
+  animation: pulse-shadow var(--animation-duration) infinite var(--transition-easing);
+  border: var(--border-not-hovered);
+  transition: border var(--transition-duration) var(--transition-easing);
+  z-index: 99;
+  box-sizing: border-box;
+}
+
+.chatContainer:hover{
+    border: var(--border-hovered);
+  
 }
 
 .message {

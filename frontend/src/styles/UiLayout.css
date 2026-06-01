@@ -6,6 +6,8 @@
     width: var(--full-screen-width);
     height: var(--full-screen-height);
     overflow: hidden;
-    padding: var(--small-padding);
+    padding: var(--medium-padding);
     gap: var(--small-padding);
+
+    background: var(--system-bg);
 }
