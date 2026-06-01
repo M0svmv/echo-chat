@@ -2,8 +2,11 @@
 
 .chatWindow{
     
-    width: var(--full-percent);
+    width: auto;
     height: var(--full-percent);
+    min-width: var(--sidebar-width-max);
+    max-width: var(--full-percent);
+    
     
     display: flex;
     flex-direction: column;

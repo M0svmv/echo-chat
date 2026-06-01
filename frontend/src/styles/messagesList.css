@@ -7,6 +7,7 @@
   width: var(--full-percent);
   height: var(--full-percent);
   
+  
   display: flex;
   flex-direction: column;
 
