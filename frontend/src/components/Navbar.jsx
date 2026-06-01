@@ -2,9 +2,9 @@ import '../styles/navbar.css';
 
 import {FiHome,FiBell,FiUsers,FiUserPlus,FiArchive,FiSettings,FiUser} from 'react-icons/fi'
 
-
+import { useSelector } from "react-redux";
 export default function Navbar() {
-  
+  const currentUser = useSelector((state) => state.auth.user);
 
   return (
     <div className="navbar">
@@ -48,18 +48,22 @@ export default function Navbar() {
 
     <ul className="navbar-icons-list">
       
-      
+      <li className="nav-item">
+        <a className="nav-link" href="/register">
+        <div className="user-icon">
+        {currentUser.avatar ?<img src={currentUser.avatar} alt="Avatar" />:currentUser.firstName.charAt(0).toUpperCase() + currentUser.lastName.charAt(0).toUpperCase()}
+            
+        </div>
+          
+        </a>
+      </li>
       <li className="nav-item">
         <a className="nav-link" href="/register">
           <FiSettings />
         </a>
       </li>
 
-      <li className="nav-item">
-        <a className="nav-link" href="/register">
-          <FiUser />
-        </a>
-      </li>
+      
     </ul>
       
     </div>

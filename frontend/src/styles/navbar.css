@@ -97,3 +97,23 @@ ul{
     font-weight: var(--font-weight-bold);
     color: var(--color-text-light);
 }
+
+.navbar-icons-list{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--medium-padding);
+}
+
+.user-icon{
+    width: var(--avatar-size);
+    height: var(--avatar-size);
+    border-radius: var(--border-radius-circle);
+    background: var(--color-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-larger);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-light);
+}
