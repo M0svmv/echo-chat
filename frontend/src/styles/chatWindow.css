@@ -10,6 +10,7 @@
     gap: var(--msg-gap);
     overflow-y: auto;
     
+    
     animation: pulse-shadow var(--animation-duration) infinite var(--transition-easing);
     border-radius: var(--border-radius);
 }

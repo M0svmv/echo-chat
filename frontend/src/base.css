@@ -94,7 +94,8 @@
     --full-screen-height: 100dvh;
     --full-screen-width: 100dvw;
 
-    --sidebar-width: 27dvw;
+    --sidebar-width-max: 340px;
+    --sidebar-width-min: 250px;
     --full-percent: 100%;
     --part-percent: 80%;
 

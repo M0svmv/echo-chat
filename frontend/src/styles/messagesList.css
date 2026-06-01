@@ -18,6 +18,7 @@
   transition: border var(--transition-duration) var(--transition-easing);
   z-index: 99;
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .chatContainer:hover{
