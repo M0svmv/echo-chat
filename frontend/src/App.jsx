@@ -19,6 +19,7 @@ import ConversationsList from './components/ConversationsList.jsx';
 import SendFriendRequest from './components/SendFriendRequest.jsx';
 import FriendRequests from './components/FriendRequests.jsx';
 import RequestsSent from './components/RequestsSent.jsx';
+import ArchiveChats from './components/ArchiveChats.jsx';
 
 
 
@@ -65,6 +66,7 @@ function App() {
         <Route path='/available-users' element={<SendFriendRequest />} />
         <Route path='/friendRequests' element={<FriendRequests />} />
         <Route path='/requestsSent' element={<RequestsSent />} />
+        <Route path='/archive' element={<ArchiveChats />} />
         </Route>
         </Route>
         </Route>

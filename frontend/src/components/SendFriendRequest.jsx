@@ -85,7 +85,7 @@ export default function SendFriendRequest() {
           <>
             {loading && (
               <div className="loading">
-                Searching...
+                <div className="spinner"></div>
               </div>
             )}
 

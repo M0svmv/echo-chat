@@ -86,7 +86,7 @@ export default function RequestsSent() {
 
       {/* LOADING */}
       {loading ? (
-        <div className="loading">Loading requests...</div>
+        <div className="loading"><div className="spinner"></div></div>
       ) : filteredRequests.length === 0 ? (
         <div className="no-results">No friend requests found</div>
       ) : (

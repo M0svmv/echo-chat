@@ -40,9 +40,9 @@ export default function Navbar() {
       
       
       <li className="nav-item">
-        <a className="nav-link nav-archive" href="/register">
+        <Link className="nav-link nav-archive" to="/archive">
           <GoArchive />
-        </a>
+        </Link>
       </li>
 
       <li className="nav-item">

@@ -23,6 +23,11 @@ const conversationSchema = new mongoose.Schema(
       default: 0,
     },
   }],
+  archivedBy: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  }],
+
   },
   { timestamps: true }
 );
