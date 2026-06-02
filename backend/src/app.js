@@ -9,6 +9,7 @@ const corsOptions = require('./config/corsOptions.config');
 const authRoutes = require('./modules/auth/auth.routes');
 const conversationRoutes = require('./modules/chat/routes/conversation.routes');
 const messageRoutes = require('./modules/chat/routes/message.routes');
+const friendsRoutes = require('./modules/friends/routes/friends.routes');
 
 dotenv.config();
 
@@ -22,5 +23,6 @@ app.use(helmet());
 app.use('/api/auth', authRoutes);
 app.use('/api/chats', conversationRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/friends', friendsRoutes);
 
 module.exports = app;

@@ -11,4 +11,6 @@ router.post("/", protect, conversationController.createConversation);
 
 router.get("/", protect, conversationController.getUserConversations);
 
+router.get("/search", protect, conversationController.searchNewUsers);
+
 module.exports = router;

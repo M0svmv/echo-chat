@@ -5,6 +5,8 @@ import { useEffect } from "react";
 
 import Sidebar from "../components/Sidebar";
 
+import ChatWindow from "../components/ChatWindow";
+
 import socket from "../socket/socket";
 import { useDispatch, useSelector } from "react-redux";
 import { addMessage } from "../features/chat/chatSlice";
@@ -44,9 +46,12 @@ export default function Home() {
   return (
     <>
 
-      <Sidebar />
+      <Sidebar >
 
       <Outlet />
+      </Sidebar>
+
+      <ChatWindow />
 
       {/* <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
         <MessagesList />

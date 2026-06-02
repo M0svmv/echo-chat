@@ -1,4 +1,5 @@
 const Conversation = require("../../../models/conversation.model");
+const User = require("../../../models/user.model");
 
 exports.createConversation = async (req, res) => {
   try {
@@ -49,3 +50,26 @@ exports.getUserConversations = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
+exports.searchNewUsers = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { query } = req.query;
+    if (!query) {
+      return res.status(400).json({ message: "Query is required" });
+    }
+    const users = await User.find({
+      $or: [
+        { firstName: { $regex: query, $options: "i" } },
+        { lastName: { $regex: query, $options: "i" } },
+        { username: { $regex: query, $options: "i" } },
+      ],
+    }).select("firstName lastName username avatar").limit(10);
+    return res.status(200).json({
+      users,
+    })
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+}

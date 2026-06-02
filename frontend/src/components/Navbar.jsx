@@ -1,6 +1,16 @@
 import '../styles/navbar.css';
 
-import {FiHome,FiBell,FiUsers,FiUserPlus,FiArchive,FiSettings} from 'react-icons/fi'
+import {FiHome} from 'react-icons/fi'
+import { LuUserSearch } from "react-icons/lu";
+import { TbUserShare,TbUserDown } from "react-icons/tb";
+import { GoArchive } from "react-icons/go";
+import { RiNotificationLine } from "react-icons/ri";
+import { TbSettings } from "react-icons/tb";
+
+
+
+
+import { Link } from 'react-router-dom';
 
 import { useSelector } from "react-redux";
 export default function Navbar() {
@@ -18,31 +28,41 @@ export default function Navbar() {
 
     <ul className="navbar-links-list">
       <li className="nav-item">
-        <a className="nav-link nav-home active" href="/">
+        <Link className="nav-link nav-home active" to="/">
           <FiHome />
-        </a>
+        </Link>
       </li>
       <li className="nav-item">
         <a className="nav-link nav-bell" href="/register">
-          <FiBell />
-        </a>
-      </li>
-      <li className="nav-item">
-        <a className="nav-link nav-groups" href="/login">
-          <FiUsers />
+          <RiNotificationLine />
         </a>
       </li>
       
+      
       <li className="nav-item">
         <a className="nav-link nav-archive" href="/register">
-          <FiArchive />
+          <GoArchive />
         </a>
+      </li>
+
+      <li className="nav-item">
+        <Link className="nav-link nav-add" to="/available-users">
+          <LuUserSearch />
+        </Link>
       </li>
       <li className="nav-item">
-        <a className="nav-link nav-add" href="/register">
-          <FiUserPlus />
-        </a>
+        <Link className="nav-link nav-Requests" to="/friendRequests">
+          <TbUserDown />
+        </Link>
       </li>
+      
+      <li className="nav-item">
+        <Link className="nav-link nav-add" to="/requestsSent">
+          <TbUserShare />
+        </Link>
+      </li>
+
+      
     </ul>
     </div>
 
@@ -59,7 +79,7 @@ export default function Navbar() {
       </li>
       <li className="nav-item">
         <a className="nav-link" href="/register">
-          <FiSettings />
+          <TbSettings />
         </a>
       </li>
 

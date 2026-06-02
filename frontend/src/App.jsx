@@ -14,7 +14,11 @@ import Register from "./pages/Register.jsx";
 import ProtectedRoute from './routes/ProtectedRoute.jsx';
 import Home from './pages/Home.jsx';
 import UiLayout from './layouts/UiLayout.jsx';
-import ChatWindow from './components/ChatWindow.jsx';
+
+import ConversationsList from './components/ConversationsList.jsx';
+import SendFriendRequest from './components/SendFriendRequest.jsx';
+import FriendRequests from './components/FriendRequests.jsx';
+import RequestsSent from './components/RequestsSent.jsx';
 
 
 
@@ -57,7 +61,10 @@ function App() {
         <Route element={<ProtectedRoute />} >
         <Route element={<UiLayout />} >
         <Route path='/' element={<Home />} >
-        <Route index element={<ChatWindow />} />
+        <Route index element={<ConversationsList />} />
+        <Route path='/available-users' element={<SendFriendRequest />} />
+        <Route path='/friendRequests' element={<FriendRequests />} />
+        <Route path='/requestsSent' element={<RequestsSent />} />
         </Route>
         </Route>
         </Route>

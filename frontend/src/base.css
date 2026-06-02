@@ -6,6 +6,8 @@
     --color-secondary: #6c00fe;
     --color-secondary-rgb: 108, 0, 254;
     --color-tertiary: #5865F2;
+    --color-tertiary-rgb: 88, 101, 242;
+
     --color-background: #0b0416;
     --color-text-dark: #000;
     --color-text-light: #ffffff;
@@ -28,9 +30,9 @@
     --color-warning-bg:rgba(var(--color-warning-rgb), var(--color-bg-opacity));
     --color-success-bg:rgba(var(--color-success-rgb), var(--color-bg-opacity));
 
-    --border-error:1px solid rgba(var(--color-error-rgb), var(--color-border-opacity));
-    --border-warning:1px solid rgba(var(--color-warning-rgb), var(--color-border-opacity));
-    --border-success:1px solid rgba(var(--color-success-rgb), var(--color-border-opacity));
+    --border-error:1.5px solid rgba(var(--color-error-rgb), var(--color-border-opacity));
+    --border-warning:1.5px solid rgba(var(--color-warning-rgb), var(--color-border-opacity));
+    --border-success:1.5px solid rgba(var(--color-success-rgb), var(--color-border-opacity));
 
     --color-input-bg: #f9f9f9;
     --color-input-border: rgba(108, 0, 255, 0.15);
@@ -95,7 +97,7 @@
     --full-screen-width: 100dvw;
 
     --sidebar-width-max: 340px;
-    --sidebar-width-min: 270px;
+    --sidebar-width-min: 290px;
     --full-percent: 100%;
     --part-percent: 80%;
 

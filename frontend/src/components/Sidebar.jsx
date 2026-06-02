@@ -1,8 +1,11 @@
 import {MdMoreVert} from 'react-icons/md'
 
-import ConversationsList from "./ConversationsList";
+
+
+// import ConversationsList from "./ConversationsList";
 
 import "../styles/sidebar.css";
+import { Outlet } from 'react-router-dom';
 
 export default function Sidebar() {
   
@@ -14,7 +17,7 @@ export default function Sidebar() {
     <div className="more"><MdMoreVert /></div>
     
     </div>
-      <ConversationsList />
+      <Outlet />
     </div>
   );
 }
