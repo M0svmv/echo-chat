@@ -75,7 +75,7 @@ exports.searchNewUsers = async (req, res) => {
 }
 
 
-exports.getarchivedConversations = async (req, res) => {
+exports.getArchivedConversations = async (req, res) => {
   try {
     const userId = req.user._id;
 
