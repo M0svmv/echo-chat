@@ -148,3 +148,36 @@
     box-shadow: 0 0 25px rgba(var(--color-secondary-rgb), 0.1);
   }
 }
+
+
+:root.light-theme {
+    --color-primary: #f9f8ff;
+    --color-secondary: #6c00fe;
+    --color-secondary-rgb: 108, 0, 254;
+    --color-tertiary: #5865F2;
+    --color-tertiary-rgb: 88, 101, 242;
+
+    --color-background: #f4f0ff;
+    --color-text-dark: #1a0a2e;
+    --color-text-light: #1a0a2e;
+    --color-text-placeholder: #a89fc5;
+    --color-msg-bg: #f0ecff;
+    --color-msg-bg-2: #ede5ff;
+
+    --color-error: #e11d48;
+    --color-error-rgb: 225, 29, 72;
+    --color-warning: #d97706;
+    --color-warning-rgb: 217, 119, 6;
+    --color-success: #059669;
+    --color-success-rgb: 5, 150, 105;
+
+    --color-input-bg: #e8e0f8;
+    --color-input-border: rgba(108, 0, 255, 0.2);
+
+    --card-bg: #ffffff;
+
+    --box-shadow: 2px 2px 30px rgba(var(--color-secondary-rgb), 0.12);
+
+    --border-not-hovered: 2.5px solid rgba(var(--color-secondary-rgb), 0.15);
+    --border-hovered: 2.5px solid rgba(var(--color-secondary-rgb), 0.7);
+}

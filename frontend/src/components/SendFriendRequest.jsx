@@ -124,7 +124,7 @@ export default function SendFriendRequest() {
 
                     
                   </div>
-                  <div className="chat-actions">
+                  <div className="chat-item-actions">
                   <button
     className="add-btn"
     onClick={() => sendFriendRequest(user)}
