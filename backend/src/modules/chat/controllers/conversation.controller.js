@@ -35,6 +35,7 @@ exports.getUserConversations = async (req, res) => {
     const userId = req.user._id;
     const conversations = await Conversation.find({
   participants: userId,
+  archivedBy: { $ne: userId },
 })
   .populate("participants", "firstName lastName username")
   .populate({
@@ -97,5 +98,34 @@ exports.getArchivedConversations = async (req, res) => {
     return res.status(500).json({
       message: "Internal server error",
     });
+  }
+};
+
+exports.toggleArchiveConversation = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { conversationId } = req.params;
+
+    if (!conversationId) {
+      return res.status(400).json({ message: "Conversation ID is required" });
+    }
+
+    const conversation = await Conversation.findById(conversationId);
+
+    if (!conversation) {
+      return res.status(404).json({ message: "Conversation not found" });
+    }
+
+    if (conversation.archivedBy.includes(userId)) {
+      conversation.archivedBy.pull(userId);
+    } else {
+      conversation.archivedBy.push(userId);
+    }
+
+    await conversation.save();
+
+    return res.status(200).json(conversation);
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
