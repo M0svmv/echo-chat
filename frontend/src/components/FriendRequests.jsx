@@ -108,6 +108,7 @@ export default function FriendRequests() {
           No friend requests found
         </div>
       ) : (
+        <div className="chat-items-container">
         <ul>
           {filteredRequests.map((request) => {
             const user = request.sender || request.receiver;
@@ -191,6 +192,7 @@ export default function FriendRequests() {
             );
           })}
         </ul>
+        </div>
       )}
     </div>
   );

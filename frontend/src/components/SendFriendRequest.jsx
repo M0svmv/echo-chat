@@ -8,7 +8,7 @@ import {
   
 } from "react-icons/fa";
 
-import { FaUserPlus } from "react-icons/fa6";
+import { FiUserPlus } from "react-icons/fi";
 import "../styles/chat.css";
 
 export default function SendFriendRequest() {
@@ -114,12 +114,15 @@ export default function SendFriendRequest() {
                       />
                     )}
                   </div>
+                  
 
                   <div className="chatInfo">
-                    {user.firstName} {user.lastName}
-
-                    <span className="username-tag">
+                  <span className="username-tag">
                       @{user.username}
+                    </span>
+                    <br />
+                    <span className="name-tag">
+                      {user.firstName} {user.lastName}
                     </span>
 
                     
@@ -129,7 +132,7 @@ export default function SendFriendRequest() {
     className="add-btn"
     onClick={() => sendFriendRequest(user)}
   >
-    <FaUserPlus />
+    <FiUserPlus />
   </button>
                   </div>
                 </li>

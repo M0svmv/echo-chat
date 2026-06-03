@@ -42,6 +42,7 @@ export default function ConversationsList() {
       </div>
 
       <h3>Chats</h3>
+      <div className="chat-items-container">
 
       <ul>
         {conversations.map((conv) => {
@@ -118,6 +119,7 @@ export default function ConversationsList() {
           );
         })}
       </ul>
+      </div>
     </div>
   );
 }

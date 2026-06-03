@@ -148,7 +148,17 @@
     display: flex;
     flex-direction: column;
     gap: var(--small-padding);
+    width: var(--full-percent);
+    height: var(--full-percent);
+    
         
+}
+
+.chat-items-container{
+    width: var(--full-percent);
+    height: var(--full-percent);
+    overflow-y:scroll;
+    padding-right: var(--small-padding);
 }
 
 .chatsContainer .chatItem {
