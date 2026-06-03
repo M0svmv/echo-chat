@@ -35,6 +35,14 @@ export default function FriendRequests() {
       await api.post(`/friends/request/respond/${requestId}`, {
         action: "rejected",
       });
+
+      setRequests((prev) =>
+      prev.map((req) =>
+        req._id === requestId
+          ? { ...req, status: "rejected" }
+          : req
+      )
+    );
     } catch (error) {
       console.error("Failed to reject request:", error);
     }

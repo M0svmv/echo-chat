@@ -80,6 +80,8 @@ export default function SendFriendRequest() {
 
       <h3>Add Friends</h3>
 
+      <div className="chat-items-container">
+
       <ul>
         { (
           <>
@@ -147,6 +149,9 @@ export default function SendFriendRequest() {
           </>
         ) }
       </ul>
+      </div>
+      
     </div>
   );
 }
+

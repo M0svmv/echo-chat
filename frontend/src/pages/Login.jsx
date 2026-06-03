@@ -6,6 +6,9 @@ import { useNavigate, Link } from "react-router-dom";
 import { FiUser, FiLock } from "react-icons/fi";
 import "./Login.css";
 
+import { useSelector } from "react-redux";
+import { Navigate } from "react-router-dom";
+
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -14,7 +17,14 @@ export default function Login() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  const { accessToken } = useSelector((state) => state.auth);
+
+  if (accessToken) {
+    return <Navigate to="/" replace />;
+  }
+
   const handleLogin = async (e) => {
+    
     e.preventDefault();
     setError("");
 
@@ -31,7 +41,7 @@ export default function Login() {
         })
       );
 
-      navigate("/");
+      navigate("/", { replace: true });
       
     } catch (err) {
       console.log(err);
