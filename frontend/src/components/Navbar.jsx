@@ -97,11 +97,11 @@ export default function Navbar() {
             </NavLink>
           </li>
 
-          <li className="nav-item">
+          {/* <li className="nav-item">
             <NavLink className={({ isActive }) => isActive ? "nav-link nav-bell active" : "nav-link nav-bell"} to="/notifications">
               <RiNotificationLine />
             </NavLink>
-          </li>
+          </li> */}
 
           <li className="nav-item">
             <NavLink className={({ isActive }) => isActive ? "nav-link nav-archive active" : "nav-link nav-archive"} to="/archive">
