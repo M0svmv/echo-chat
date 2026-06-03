@@ -383,3 +383,26 @@
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+
+.notifications-badge{
+    position: absolute;
+    top: 0px;
+    right: -5px;
+}
+
+
+.badge{
+    
+    
+    background: var(--color-tertiary);
+    color: var(--color-text-light);
+    font-size: var(--font-size-small);
+    font-weight: var(--font-weight-medium);
+    width: 18px;
+    height: 18px;
+    border-radius: var(--border-radius-circle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

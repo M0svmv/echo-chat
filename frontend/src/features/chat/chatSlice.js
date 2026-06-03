@@ -29,6 +29,18 @@ const chatSlice = createSlice({
   );
 },
 
+updateConversation: (state, action) => {
+  const updated = action.payload;
+  const index = state.conversations.findIndex((c) => c._id === updated._id);
+  if (index !== -1) {
+    state.conversations[index] = updated;
+    // ✅ رتب الـ conversations بالأحدث
+    state.conversations.sort(
+      (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)
+    );
+  }
+},
+
     setMessages: (state, action) => {
       state.messages = action.payload;
     },
@@ -43,6 +55,7 @@ export const {
   setConversations,
   setActiveConversation,
     markMessagesSeen,
+    updateConversation,
   setMessages,
   addMessage,
 } = chatSlice.actions;

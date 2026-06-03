@@ -34,9 +34,9 @@ export default function MessagesList() {
 
     const handleScroll = () => {
       const threshold = 100;
+      // ✅ علامة المقارنة < كانت ناقصة
       const atBottom =
-        container.scrollHeight - container.scrollTop - container.clientHeight 
-        threshold;
+        container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
       setIsAtBottom(atBottom);
     };
 
@@ -74,7 +74,7 @@ export default function MessagesList() {
   useEffect(() => {
     if (!active) return;
 
-    socket.on("messagesSeen", (msg) => {
+    socket.on("newMessage", (msg) => {
       if (msg.conversationId === active._id) {
         socket.emit("markAsSeen", {
           conversationId: active._id,
@@ -84,11 +84,11 @@ export default function MessagesList() {
     });
 
     return () => {
-      socket.off("messagesSeen");
+      socket.off("newMessage");
     };
   }, [active?._id, currentUser._id]);
 
-  // ✅ single clean listener for messagesSeen — updates UI in real-time
+  // ✅ single clean listener for messagesSeen
   useEffect(() => {
     socket.on("messagesSeen", (data) => {
       dispatch(markMessagesSeen(data));
@@ -105,7 +105,7 @@ export default function MessagesList() {
     messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
   }, [active?._id]);
 
-  // ✅ auto-scroll when new messages arrive (only if already at bottom)
+  // ✅ auto-scroll فقط لو انت في الأسفل
   useEffect(() => {
     if (!messagesRef.current) return;
     if (isAtBottom) {

@@ -23,7 +23,6 @@ const io = new Server(server, {
 app.set('io', io);
 
 const onlineUsers = new Map();
-
 app.set('onlineUsers', onlineUsers);
 
 io.on('connection', (socket) => {
@@ -31,58 +30,53 @@ io.on('connection', (socket) => {
 
   socket.on('addUser', (userId) => {
     onlineUsers.set(userId, socket.id);
-
     console.log('Online Users:', [...onlineUsers]);
   });
 
-  socket.on(
-  "markAsSeen",
-  async ({ conversationId, userId }) => {
+  socket.on("markAsSeen", async ({ conversationId, userId }) => {
     try {
-      await Message.updateMany(
-        {
-          conversationId,
-          sender: { $ne: userId },
-          seen: false,
-        },
-        {
-          $set: {
-            seen: true,
-          },
-        }
+      await Conversation.updateOne(
+        { _id: conversationId, "unreadCounts.user": userId },
+        { $set: { "unreadCounts.$.count": 0 } }
       );
 
-      const conversation =
-        await Conversation.findById(
-          conversationId
-        );
+      await Message.updateMany(
+        { conversationId, sender: { $ne: userId }, seen: false },
+        { $set: { seen: true } }
+      );
 
-      const receiverId =
-        conversation.participants.find(
-          (id) => id.toString() !== userId
-        );
+      // ✅ جيب الـ conversation بعد التحديث
+      const updatedConversation = await Conversation.findById(conversationId)
+        .populate("participants", "firstName lastName username")
+        .populate({
+          path: "lastMessage",
+          populate: {
+            path: "sender",
+            select: "username firstName lastName",
+          },
+        });
 
-      const receiverSocketId =
-        onlineUsers.get(
-          receiverId.toString()
-        );
+      // ✅ emit conversationUpdated لكل المشاركين
+      updatedConversation.participants.forEach((participant) => {
+        const socketId = onlineUsers.get(participant._id.toString());
+        if (socketId) {
+          io.to(socketId).emit("conversationUpdated", updatedConversation);
+        }
+      });
 
+      // ✅ emit messagesSeen للـ receiver بس
+      const receiverId = updatedConversation.participants.find(
+        (p) => p._id.toString() !== userId
+      );
+
+      const receiverSocketId = onlineUsers.get(receiverId._id.toString());
       if (receiverSocketId) {
-        io.to(receiverSocketId).emit(
-          "messagesSeen",
-          {
-            conversationId,
-          }
-        );
+        io.to(receiverSocketId).emit("messagesSeen", { conversationId });
       }
-      io.to(conversationId).emit("messagesSeen", {
-      conversationId,
-    });
     } catch (error) {
       console.log(error);
     }
-  }
-);
+  });
 
   socket.on('disconnect', () => {
     for (const [userId, socketId] of onlineUsers.entries()) {
@@ -91,7 +85,6 @@ io.on('connection', (socket) => {
         break;
       }
     }
-
     console.log('🔴 User disconnected:', socket.id);
   });
 });
