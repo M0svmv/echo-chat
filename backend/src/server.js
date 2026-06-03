@@ -45,7 +45,6 @@ io.on('connection', (socket) => {
         { $set: { seen: true } }
       );
 
-      // ✅ جيب الـ conversation بعد التحديث
       const updatedConversation = await Conversation.findById(conversationId)
         .populate("participants", "firstName lastName username")
         .populate({
@@ -56,15 +55,17 @@ io.on('connection', (socket) => {
           },
         });
 
-      // ✅ emit conversationUpdated لكل المشاركين
+      // ✅ emit مع hasNewMessage: false
       updatedConversation.participants.forEach((participant) => {
         const socketId = onlineUsers.get(participant._id.toString());
         if (socketId) {
-          io.to(socketId).emit("conversationUpdated", updatedConversation);
+          io.to(socketId).emit("conversationUpdated", {
+            ...updatedConversation.toObject(),
+            hasNewMessage: false,
+          });
         }
       });
 
-      // ✅ emit messagesSeen للـ receiver بس
       const receiverId = updatedConversation.participants.find(
         (p) => p._id.toString() !== userId
       );

@@ -135,6 +135,21 @@
     
 }
 
+.clearButton{
+    position: absolute;
+    right: 40px;
+    background: transparent;
+    height: var(--full-percent);
+    aspect-ratio: 1/1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    color: var(--color-text-dark);
+    font-size: var(--font-size-large);
+}
+
 .chatsContainer h3 {
     
     color: var(--color-text-light);

@@ -57,7 +57,6 @@ exports.sendMessage = async (req, res) => {
       );
     }
 
-    // ✅ جيب الـ conversation بعد التحديث
     const updatedConversation = await Conversation.findById(conversationId)
       .populate("participants", "firstName lastName username")
       .populate({
@@ -68,15 +67,17 @@ exports.sendMessage = async (req, res) => {
         },
       });
 
-    // ✅ emit لكل المشاركين
+    // ✅ emit مع hasNewMessage: true
     conversation.participants.forEach((participantId) => {
       const socketId = onlineUsers?.get(participantId.toString());
       if (socketId) {
-        io.to(socketId).emit("conversationUpdated", updatedConversation);
+        io.to(socketId).emit("conversationUpdated", {
+          ...updatedConversation.toObject(),
+          hasNewMessage: true,
+        });
       }
     });
 
-    // ✅ emit الرسالة للـ receiver
     const receiverSocketId = onlineUsers?.get(receiverIdFinal.toString());
     if (receiverSocketId) {
       io.to(receiverSocketId).emit("newMessage", {
