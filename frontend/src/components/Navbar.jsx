@@ -12,7 +12,7 @@ import api from "../api/axios";
 import {logout} from "../features/auth/authSlice";
 
 import { useState, useRef, useEffect } from "react";
-import { useNavigate,Link } from "react-router-dom";
+import { useNavigate,NavLink } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 
 export default function Navbar() {
@@ -92,48 +92,48 @@ export default function Navbar() {
 
         <ul className="navbar-links-list">
           <li className="nav-item">
-            <Link className="nav-link nav-home active" to="/">
+            <NavLink className={({ isActive }) => isActive ? "nav-link nav-home active" : "nav-link nav-home"} to="/">
               <FiHome />
-            </Link>
+            </NavLink>
           </li>
 
           <li className="nav-item">
-            <Link className="nav-link nav-bell" to="/notifications">
+            <NavLink className={({ isActive }) => isActive ? "nav-link nav-bell active" : "nav-link nav-bell"} to="/notifications">
               <RiNotificationLine />
-            </Link>
+            </NavLink>
           </li>
 
           <li className="nav-item">
-            <Link className="nav-link nav-archive" to="/archive">
+            <NavLink className={({ isActive }) => isActive ? "nav-link nav-archive active" : "nav-link nav-archive"} to="/archive">
               <GoArchive />
-            </Link>
+            </NavLink>
           </li>
 
           <li className="nav-item">
-            <Link
-              className="nav-link nav-add"
+            <NavLink
+              className={({ isActive }) => isActive ? "nav-link nav-add active" : "nav-link nav-add"}
               to="/available-users"
             >
               <LuUserSearch />
-            </Link>
+            </NavLink>
           </li>
 
           <li className="nav-item">
-            <Link
-              className="nav-link nav-Requests"
+            <NavLink
+              className={({ isActive }) => isActive ? "nav-link nav-Requests active" : "nav-link nav-Requests"}
               to="/friendRequests"
             >
               <TbUserDown />
-            </Link>
+            </NavLink>
           </li>
 
           <li className="nav-item">
-            <Link
-              className="nav-link nav-add"
+            <NavLink
+              className={({ isActive }) => isActive ? "nav-link nav-Requests active" : "nav-link nav-Requests"}
               to="/requestsSent"
             >
               <TbUserShare />
-            </Link>
+            </NavLink>
           </li>
         </ul>
       </div>
