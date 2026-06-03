@@ -4,6 +4,9 @@ import connectDB from './config/db.config.js';
 import http from 'http';
 import { Server } from 'socket.io';
 
+import Message from './models/message.model.js';
+import Conversation from './models/conversation.model.js';
+
 const PORT = process.env.PORT || 5000;
 
 connectDB();
@@ -31,6 +34,55 @@ io.on('connection', (socket) => {
 
     console.log('Online Users:', [...onlineUsers]);
   });
+
+  socket.on(
+  "markAsSeen",
+  async ({ conversationId, userId }) => {
+    try {
+      await Message.updateMany(
+        {
+          conversationId,
+          sender: { $ne: userId },
+          seen: false,
+        },
+        {
+          $set: {
+            seen: true,
+          },
+        }
+      );
+
+      const conversation =
+        await Conversation.findById(
+          conversationId
+        );
+
+      const receiverId =
+        conversation.participants.find(
+          (id) => id.toString() !== userId
+        );
+
+      const receiverSocketId =
+        onlineUsers.get(
+          receiverId.toString()
+        );
+
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit(
+          "messagesSeen",
+          {
+            conversationId,
+          }
+        );
+      }
+      io.to(conversationId).emit("messagesSeen", {
+      conversationId,
+    });
+    } catch (error) {
+      console.log(error);
+    }
+  }
+);
 
   socket.on('disconnect', () => {
     for (const [userId, socketId] of onlineUsers.entries()) {

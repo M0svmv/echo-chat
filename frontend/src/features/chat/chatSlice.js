@@ -18,6 +18,17 @@ const chatSlice = createSlice({
       state.activeConversation = action.payload;
     },
 
+    markMessagesSeen: (state, action) => {
+  const { conversationId, userId } = action.payload;
+
+  state.messages = state.messages.map((msg) =>
+    msg.conversationId === conversationId &&
+    msg.sender?._id !== userId
+      ? { ...msg, seen: true }
+      : msg
+  );
+},
+
     setMessages: (state, action) => {
       state.messages = action.payload;
     },
@@ -31,6 +42,7 @@ const chatSlice = createSlice({
 export const {
   setConversations,
   setActiveConversation,
+    markMessagesSeen,
   setMessages,
   addMessage,
 } = chatSlice.actions;

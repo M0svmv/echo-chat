@@ -1,12 +1,13 @@
 import { useRef, useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import socket from "../socket/socket";
 import api from "../api/axios";
 
-import { setMessages } from "../features/chat/chatSlice";
+import { setMessages, markMessagesSeen } from "../features/chat/chatSlice";
 import "../styles/messagesList.css";
 
-import {  FaSearch } from "react-icons/fa";
-import { FaCheck, FaCheckDouble,FaPhone, FaVideo } from "react-icons/fa6";
+import { FaSearch } from "react-icons/fa";
+import { FaCheck, FaCheckDouble, FaPhone, FaVideo } from "react-icons/fa6";
 import { FiMoreVertical } from "react-icons/fi";
 
 import NotSelectedChat from "./NotSelectedChat";
@@ -25,6 +26,7 @@ export default function MessagesList() {
   const messagesRef = useRef(null);
   const [isAtBottom, setIsAtBottom] = useState(true);
 
+  // ✅ scroll listener
   useEffect(() => {
     if (!active || !messagesRef.current) return;
 
@@ -32,23 +34,17 @@ export default function MessagesList() {
 
     const handleScroll = () => {
       const threshold = 100;
-
       const atBottom =
-        container.scrollHeight -
-          container.scrollTop -
-          container.clientHeight <
+        container.scrollHeight - container.scrollTop - container.clientHeight 
         threshold;
-
       setIsAtBottom(atBottom);
     };
 
     container.addEventListener("scroll", handleScroll);
-
-    return () => {
-      container.removeEventListener("scroll", handleScroll);
-    };
+    return () => container.removeEventListener("scroll", handleScroll);
   }, [active]);
 
+  // ✅ fetch messages when active conversation changes
   useEffect(() => {
     if (!active) return;
 
@@ -64,19 +60,56 @@ export default function MessagesList() {
     fetchMessages();
   }, [active?._id, dispatch]);
 
+  // ✅ emit markAsSeen عند دخول الشات
+  useEffect(() => {
+    if (!active) return;
+
+    socket.emit("markAsSeen", {
+      conversationId: active._id,
+      userId: currentUser._id,
+    });
+  }, [active?._id, currentUser._id]);
+
+  // ✅ لو جت رسالة جديدة وانت جوا الشات — ابعت markAsSeen فورًا
+  useEffect(() => {
+    if (!active) return;
+
+    socket.on("messagesSeen", (msg) => {
+      if (msg.conversationId === active._id) {
+        socket.emit("markAsSeen", {
+          conversationId: active._id,
+          userId: currentUser._id,
+        });
+      }
+    });
+
+    return () => {
+      socket.off("messagesSeen");
+    };
+  }, [active?._id, currentUser._id]);
+
+  // ✅ single clean listener for messagesSeen — updates UI in real-time
+  useEffect(() => {
+    socket.on("messagesSeen", (data) => {
+      dispatch(markMessagesSeen(data));
+    });
+
+    return () => {
+      socket.off("messagesSeen");
+    };
+  }, [dispatch]);
+
+  // ✅ scroll to bottom when switching conversations
   useEffect(() => {
     if (!messagesRef.current) return;
-
-    messagesRef.current.scrollTop =
-      messagesRef.current.scrollHeight;
+    messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
   }, [active?._id]);
 
+  // ✅ auto-scroll when new messages arrive (only if already at bottom)
   useEffect(() => {
     if (!messagesRef.current) return;
-
     if (isAtBottom) {
-      messagesRef.current.scrollTop =
-        messagesRef.current.scrollHeight;
+      messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
     }
   }, [messages, isAtBottom]);
 
@@ -93,8 +126,7 @@ export default function MessagesList() {
           ) : (
             <div className="avatar-placeholder">
               {receiver
-                ? receiver.firstName.charAt(0) +
-                  receiver.lastName.charAt(0)
+                ? receiver.firstName.charAt(0) + receiver.lastName.charAt(0)
                 : "?"}
             </div>
           )}
@@ -140,11 +172,7 @@ export default function MessagesList() {
               <div className="text">{msg.text}</div>
 
               <div className="send-details">
-                <div
-                  className={`timestamp ${
-                    isMine ? "mine" : "theirs"
-                  }`}
-                >
+                <div className={`timestamp ${isMine ? "mine" : "theirs"}`}>
                   {new Date(msg.createdAt).toLocaleTimeString([], {
                     hour: "2-digit",
                     minute: "2-digit",
@@ -153,11 +181,7 @@ export default function MessagesList() {
 
                 {isMine && (
                   <div className="seen">
-                    {msg.seen ? (
-                      <FaCheckDouble />
-                    ) : (
-                      <FaCheck />
-                    )}
+                    {msg.seen ? <FaCheckDouble /> : <FaCheck />}
                   </div>
                 )}
               </div>
