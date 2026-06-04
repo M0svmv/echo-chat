@@ -98,7 +98,7 @@ export default function SendFriendRequest() {
                   className="chatItem"
                    
                 >
-                  <div className="chatAvatar">
+                  <div className={user?.avatar ? "chatAvatar avatar-bg" : "chatAvatar"}>
                     {!user.avatar ? (
                       <div className="avatarPlaceholder">
                         {user.firstName
@@ -125,6 +125,10 @@ export default function SendFriendRequest() {
                     <br />
                     <span className="name-tag">
                       {user.firstName} {user.lastName}
+                    </span>
+                    <br />
+                    <span className="bio-tag">
+                      {user.bio}
                     </span>
 
                     

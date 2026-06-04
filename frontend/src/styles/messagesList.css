@@ -81,10 +81,10 @@
     border-radius: var(--border-radius-sqr);
     background: var(--color-secondary);
     overflow: hidden;
-    animation: pulse-shadow var(--animation-duration) infinite var(--transition-easing);
+
     flex-shrink: 0;
   transition: border var(--transition-duration) var(--transition-easing);
-  border: var(--border-not-hovered);
+  
 }
 
 .receiver-img img{

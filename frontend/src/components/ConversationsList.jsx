@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, memo } from "react";
 import api from "../api/axios";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -14,6 +14,33 @@ import { IoCloseCircle } from "react-icons/io5";
 import { FiMoreVertical, FiArchive } from "react-icons/fi";
 
 import "../styles/chat.css";
+
+// 🔥 1. كومبوننت الأفاتار المعزول تماماً والمحمي من الـ Re-render المتكرر
+const ConversationAvatar = memo(({ avatar, firstName, lastName }) => {
+  const hasAvatar = !!avatar;
+
+  return (
+    <div className={hasAvatar ? "chatAvatar avatar-bg" : "chatAvatar"}>
+      {!hasAvatar ? (
+        <div className="avatarPlaceholder">
+          {firstName?.charAt(0).toUpperCase()}
+          {lastName?.charAt(0).toUpperCase()}
+        </div>
+      ) : (
+        <img
+          src={avatar}
+          alt={`${firstName} ${lastName}`}
+          className="avatar"
+          loading="lazy"
+        />
+      )}
+    </div>
+  );
+});
+
+// تعيين اسم الكومبوننت للـ Debugging
+ConversationAvatar.displayName = "ConversationAvatar";
+
 
 export default function ConversationsList() {
   const dispatch = useDispatch();
@@ -124,40 +151,30 @@ export default function ConversationsList() {
             filteredConversations.map((conv) => {
               const otherUser = conv.participants.find(
                 (p) => p._id !== currentUser?._id
-                
               );
               const unreadCount =
                 conv.unreadCounts.find(
                   (u) => u.user === currentUser?._id || u.user?._id === currentUser?._id
                 )?.count || 0;
 
-                const isActive = activeConversation?._id === conv._id;
+              const isActive = activeConversation?._id === conv._id;
 
               return (
                 <li
                   key={conv._id}
                   onClick={() => dispatch(setActiveConversation(conv))}
-                  
                   className={`chatItem ${isActive ? "activeChat" : ""}`}
                 >
                   <div className="notifications-badge">
                     {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
                   </div>
 
-                  <div className="chatAvatar">
-                    {!otherUser?.avatar ? (
-                      <div className="avatarPlaceholder">
-                        {otherUser?.firstName?.charAt(0).toUpperCase()}
-                        {otherUser?.lastName?.charAt(0).toUpperCase()}
-                      </div>
-                    ) : (
-                      <img
-                        src={otherUser.avatar}
-                        alt={`${otherUser.firstName} ${otherUser.lastName}`}
-                        className="avatar"
-                      />
-                    )}
-                  </div>
+                  {/* 🔥 2. استدعاء كومبوننت الأفاتار المعزول والمحمي هنا */}
+                  <ConversationAvatar 
+                    avatar={otherUser?.avatar} 
+                    firstName={otherUser?.firstName} 
+                    lastName={otherUser?.lastName} 
+                  />
 
                   <div className="chat-review">
                     <div className="chatInfo">
@@ -193,7 +210,7 @@ export default function ConversationsList() {
                   {/* ✅ More menu */}
                   <div
                     className="conv-more-options"
-                    ref={openMenuId === conv._id ? menuRef : menuRef}
+                    ref={openMenuId === conv._id ? menuRef : null}
                   >
                     <button
                       className="conv-more-btn"

@@ -229,10 +229,16 @@
     
 }
 
-.username-tag{
+.username-tag ,.bio-tag{
     font-size: var(--font-size-small);
     font-weight: var(--font-weight-medium);
     color: var(--color-text-placeholder);
+    
+}
+
+.bio-tag{
+    
+    font-weight: var(--font-weight-light)!important;
     
 }
 
@@ -288,13 +294,16 @@
     font-weight: var(--font-weight-medium);
     color: var(--color-text-light);
     overflow: hidden;
-    border: var(--border-not-hovered);
+    
 }
 
 .chatAvatar img{
     width: var(--full-percent);
     height: var(--full-percent);
     object-fit: cover;
+    transition: border var(--transition-duration) var(--transition-easing);
+    border-radius: var(--border-radius-sqr);
+
 }
 
 .addFriendBtn{
@@ -528,6 +537,7 @@
   display: flex;
   flex-direction: column;
   gap: 15px;
+  width: var(--full-percent);
 }
 
 .avatar-upload-section {
@@ -560,14 +570,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #515151; /* أو نفس لون الـ placeholder القديم عندك */
+  background-color: var(--color-text-placeholder); 
   color: white;
 }
 
 .avatar-overlay {
   position: absolute;
   top: 0; left: 0;
-  width: 100%; height: 100%;
+  width: var(--full-percent); height: var(--full-percent);
   background: rgba(0, 0, 0, 0.4);
   color: white;
   display: flex;
@@ -584,13 +594,15 @@
 
 .upload-hint {
   font-size: 0.8rem;
-  color: #888;
+  color: var(--color-text-placeholder);
   margin-top: 5px;
 }
 
 .form-group-row {
   display: flex;
-  gap: 15px;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
 }
 
 .form-group {
@@ -618,27 +630,31 @@
 }
 
 .form-group input:focus {
-  border-color: #007bff;
+  border-color: var(--color-tertiary);
 }
 
 .save-profile-btn {
-  margin-top: 10px;
-  padding: 12px;
-  background-color: #007bff;
-  color: white;
+    box-sizing: border-box;
+  margin-top: var(--regular-margin);
+  padding: var(--regular-padding);
+  background-color: var(--color-tertiary);
+  color: var(--color-text-light);
   border: none;
-  border-radius: 8px;
-  font-weight: bold;
+  border-radius: var(--border-radius-sm);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  transition: background 0.2s;
+  gap: var(--btns-gap);
+  transition: all  var(--transition-duration) var(--transition-easing);
 }
 
 .save-profile-btn:hover {
-  background-color: #0056b3;
+    
+  background-color: var(--color-primary);
+  outline: 1px solid var(--color-tertiary);
+  color: var(--color-tertiary)
 }
 
 .save-profile-btn:disabled {
@@ -661,4 +677,25 @@
 .form-message.error {
   background-color: rgba(220, 53, 69, 0.2);
   color: #dc3545;
+}
+
+.edit-profile-navigation-btn{
+    
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text-placeholder);
+    font-size: var(--font-size-base);
+    padding: var(--small-padding);
+    border-radius: var(--border-radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all  var(--transition-duration) var(--transition-easing);
+}
+
+.edit-profile-navigation-btn:hover{
+    outline: 1.5px solid var(--color-tertiary);
+    color: var(--color-tertiary);
+    background: rgba(var(--color-tertiary-rgb), var(--color-bg-opacity))
 }

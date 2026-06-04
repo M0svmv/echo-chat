@@ -138,7 +138,7 @@ export default function ArchiveChats() {
                     {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
                   </div>
 
-                  <div className="chatAvatar">
+                  <div className={otherUser?.avatar ? "chatAvatar avatar-bg" : "chatAvatar"}>
                     {!otherUser?.avatar ? (
                       <div className="avatarPlaceholder">
                         {otherUser?.firstName?.charAt(0).toUpperCase()}

@@ -50,7 +50,7 @@ exports.getAvailableUsers = async (req, res) => {
       _id: { $nin: excludedUserIds },
       ...searchFilter,
     })
-    .select("firstName lastName username avatar")
+    .select("firstName lastName username avatar bio")
     .limit(20);
 
     return res.status(200).json(availableUsers);

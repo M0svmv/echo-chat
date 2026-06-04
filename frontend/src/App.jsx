@@ -22,6 +22,7 @@ import RequestsSent from './components/RequestsSent.jsx';
 import ArchiveChats from './components/ArchiveChats.jsx';
 import Friends from './components/FriendsList.jsx';
 import UpdateProfile from './components/UpdateProfile.jsx';
+import Profile from './components/Profile.jsx';
 
 
 
@@ -72,6 +73,7 @@ function App() {
         <Route path='/archive' element={<ArchiveChats />} />
         <Route path='/friends' element={<Friends />} />
         <Route path='/updateProfile' element={<UpdateProfile />} />
+        <Route path='/profile' element={<Profile />} />
         
         </Route>
         </Route>

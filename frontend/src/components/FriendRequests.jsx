@@ -124,7 +124,7 @@ export default function FriendRequests() {
             return (
               <li key={request._id} className="chatItem">
                 {/* Avatar */}
-                <div className="chatAvatar">
+                <div className={user?.avatar ? "chatAvatar avatar-bg" : "chatAvatar"}>
                   {!user?.avatar ? (
                     <div className="avatarPlaceholder">
                       {user?.firstName?.charAt(0).toUpperCase()}

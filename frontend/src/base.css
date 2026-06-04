@@ -71,6 +71,7 @@
     --font-weight-bold: 700;
 
     --border-radius: 20px;
+    --border-radius-sm: 10px;
     --border-radius-sqr: 15px;
     --border-radius-circle: 50%;
     --box-shadow: 2px 2px 30px rgba(var(--color-secondary-rgb), 0.25);
@@ -78,11 +79,19 @@
     --card-padding: 2rem;
     --tiny-padding: 4px;
     --small-padding: 8px;
+    --regular-padding: 12px;
     --medium-padding: 16px;
     --large-padding: 32px;
     --extra-large-padding: 64px;
 
+
+    --small-margin: 8px;
+    --regular-margin: 12px;
+    --medium-margin: 16px;
+    --large-margin: 32px;
+
     --msg-gap: 3px;
+    --btns-gap:8px;
 
     --msg-detail-font: 10px;
 

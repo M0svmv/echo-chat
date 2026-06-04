@@ -117,7 +117,16 @@ ul{
     font-weight: var(--font-weight-medium);
     color: var(--color-text-light);
     overflow: hidden;
-    border: var(--border-not-hovered);
+    border: 2.5px solid rgba(var(--color-tertiary-rgb), 0.3);
+    transition:all var(--transition-duration) var(--transition-easing);
+}
+
+.user-icon:hover{
+    border: 2.5px solid var(--color-tertiary);
+}
+
+.avatar-bg{
+    background: transparent!important;
 }
 
 .user-icon img{

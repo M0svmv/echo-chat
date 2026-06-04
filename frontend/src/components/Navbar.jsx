@@ -148,7 +148,7 @@ export default function Navbar() {
               setShowSettingsMenu(false);
             }}
           >
-            <div className="user-icon">
+            <div className={currentUser?.avatar ? "user-icon avatar-bg": "user-icon"}>
               {currentUser?.avatar ? (
                 <img
                   src={currentUser.avatar}
@@ -167,7 +167,7 @@ export default function Navbar() {
 
           {showUserMenu && (
             <div className="dropdown-menu">
-              <button> <TbUser /> Profile</button>
+              <NavLink to="/profile"> <TbUser /> Profile</NavLink>
               <NavLink to="/updateProfile"><TbUserEdit  /> Edit Profile</NavLink>
               <NavLink to="/friends"><TbUsers /> Friends</NavLink>
               <button onClick={handleLogout}> <TbLogout /> Logout</button>

@@ -93,7 +93,7 @@ const handleStartConversation = async (e, friend) => {
             filteredFriends.map((friend) => (
               <li key={friend.requestId} className="chatItem">
 
-                <div className="chatAvatar">
+                <div className={friend?.avatar ? "chatAvatar avatar-bg" : "chatAvatar"}>
                   {!friend.avatar ? (
                     <div className="avatarPlaceholder">
                       {friend.firstName?.charAt(0).toUpperCase()}
