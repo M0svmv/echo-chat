@@ -46,7 +46,7 @@ io.on('connection', (socket) => {
       );
 
       const updatedConversation = await Conversation.findById(conversationId)
-        .populate("participants", "firstName lastName username")
+        .populate("participants", "firstName lastName username avatar")
         .populate({
           path: "lastMessage",
           populate: {

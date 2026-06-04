@@ -46,6 +46,7 @@ exports.login = async (req, res) => {
           firstName: user.firstName,
           username: user.username,
           lastName: user.lastName,
+          avatar: user.avatar,
           email: user.email,
           role: user.role,
         },

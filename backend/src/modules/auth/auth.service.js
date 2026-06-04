@@ -46,13 +46,13 @@ const getRefreshToken = async (refreshToken) => {
     if (!user) {
         throw new Error('User not found');
     }
-    const accessToken = generateAccessToken({ _id: user._id,firstName: user.firstName, lastName: user.lastName,email: user.email, role: user.role });
-    const newRefreshToken = generateRefreshToken({ _id: user._id,firstName: user.firstName, lastName: user.lastName,email: user.email, role: user.role });
+    const accessToken = generateAccessToken({ _id: user._id,firstName: user.firstName, lastName: user.lastName,email: user.email,avatar: user.avatar, role: user.role });
+    const newRefreshToken = generateRefreshToken({ _id: user._id,firstName: user.firstName, lastName: user.lastName,email: user.email,avatar: user.avatar, role: user.role });
 
     user.refreshToken = newRefreshToken;
     await user.save();
     return {
-        user:{ _id: user._id,firstName: user.firstName,username: user.username, lastName: user.lastName,email: user.email, role: user.role },
+        user:{ _id: user._id,firstName: user.firstName,username: user.username, lastName: user.lastName,email: user.email,avatar: user.avatar, role: user.role },
         accessToken,
         refreshToken: newRefreshToken
     };

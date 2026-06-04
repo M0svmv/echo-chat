@@ -57,6 +57,7 @@
     gap: var(--small-padding);
     color: var(--color-text-light);
     font-size: var(--font-size-larger);
+    
 }
 
 .avatar-placeholder{
@@ -72,6 +73,23 @@
     animation: pulse-shadow var(--animation-duration) infinite var(--transition-easing);
     
   transition: border var(--transition-duration) var(--transition-easing);
+}
+
+.receiver-img{
+    width: var(--avatar-size);
+    height: var(--avatar-size);
+    border-radius: var(--border-radius-sqr);
+    background: var(--color-secondary);
+    overflow: hidden;
+    animation: pulse-shadow var(--animation-duration) infinite var(--transition-easing);
+    flex-shrink: 0;
+  transition: border var(--transition-duration) var(--transition-easing);
+  border: var(--border-not-hovered);
+}
+
+.receiver-img img{
+  width: var(--full-percent);
+  aspect-ratio: 1/1;
 }
 
 .chat-actions{

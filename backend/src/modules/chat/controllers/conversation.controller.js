@@ -37,7 +37,7 @@ exports.getUserConversations = async (req, res) => {
   participants: userId,
   archivedBy: { $ne: userId },
 })
-  .populate("participants", "firstName lastName username")
+  .populate("participants", "firstName lastName username avatar")
   .populate({
     path: "lastMessage",
     populate: {
@@ -83,7 +83,7 @@ exports.getArchivedConversations = async (req, res) => {
     const conversations = await Conversation.find({
       archivedBy: userId,
     })
-      .populate("participants", "firstName lastName username")
+      .populate("participants", "firstName lastName username avatar")
       .populate({
         path: "lastMessage",
         populate: {
@@ -137,7 +137,7 @@ exports.getConversationByFriendId = async (req, res) => {
     const { friendId } = req.params;
     const conversation = await Conversation.findOne({
       participants: { $all: [userId, friendId] },
-    }) .populate("participants", "firstName lastName username")
+    }) .populate("participants", "firstName lastName username avatar")
   .populate({
     path: "lastMessage",
     populate: {

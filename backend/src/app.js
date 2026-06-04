@@ -1,5 +1,8 @@
-const express = require('express');
 const dotenv = require('dotenv');
+dotenv.config();
+
+const express = require('express');
+
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -11,7 +14,7 @@ const conversationRoutes = require('./modules/chat/routes/conversation.routes');
 const messageRoutes = require('./modules/chat/routes/message.routes');
 const friendsRoutes = require('./modules/friends/routes/friends.routes');
 
-dotenv.config();
+
 
 const app = express();
 

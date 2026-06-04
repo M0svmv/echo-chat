@@ -7,6 +7,7 @@ import {
   setMessages,
   markMessagesSeen,
   removeConversation,
+  addMessage
 } from "../features/chat/chatSlice";
 import "../styles/messagesList.css";
 
@@ -102,6 +103,7 @@ export default function MessagesList() {
 
     socket.on("newMessage", (msg) => {
       if (msg.conversationId === active._id) {
+        dispatch(addMessage(msg));
         socket.emit("markAsSeen", {
           conversationId: active._id,
           userId: currentUser._id,

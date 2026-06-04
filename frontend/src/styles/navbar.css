@@ -116,6 +116,14 @@ ul{
     font-size: var(--font-size-larger);
     font-weight: var(--font-weight-medium);
     color: var(--color-text-light);
+    overflow: hidden;
+    border: var(--border-not-hovered);
+}
+
+.user-icon img{
+    width: var(--full-percent);
+    aspect-ratio: 1/1;
+
 }
 
 .menu-button {

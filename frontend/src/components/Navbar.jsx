@@ -168,7 +168,7 @@ export default function Navbar() {
           {showUserMenu && (
             <div className="dropdown-menu">
               <button> <TbUser /> Profile</button>
-              <button><TbUserEdit  /> Edit Profile</button>
+              <NavLink to="/updateProfile"><TbUserEdit  /> Edit Profile</NavLink>
               <NavLink to="/friends"><TbUsers /> Friends</NavLink>
               <button onClick={handleLogout}> <TbLogout /> Logout</button>
             </div>
