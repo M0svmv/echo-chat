@@ -3,12 +3,15 @@ import { useSelector, useDispatch } from "react-redux";
 import socket from "../socket/socket";
 import api from "../api/axios";
 
-import { setMessages, markMessagesSeen } from "../features/chat/chatSlice";
+import {
+  setMessages,
+  markMessagesSeen,
+  removeConversation,
+} from "../features/chat/chatSlice";
 import "../styles/messagesList.css";
 
-import { FaSearch } from "react-icons/fa";
-import { FaCheck, FaCheckDouble, FaPhone, FaVideo } from "react-icons/fa6";
-import { FiMoreVertical } from "react-icons/fi";
+import { FaSearch, FaCheck, FaCheckDouble, FaPhone, FaVideo } from "react-icons/fa";
+import { FiMoreVertical, FiArchive, FiX } from "react-icons/fi";
 
 import NotSelectedChat from "./NotSelectedChat";
 
@@ -24,7 +27,31 @@ export default function MessagesList() {
   );
 
   const messagesRef = useRef(null);
+  const dropdownRef = useRef(null);
+
   const [isAtBottom, setIsAtBottom] = useState(true);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredMessages = messages.filter((msg) =>
+    msg.text?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const displayedMessages = searchQuery ? filteredMessages : messages;
+
+  const isArchived = active?.archivedBy?.includes(currentUser._id);
+
+  // ✅ اقفل الـ dropdown لو دوس برا
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // ✅ scroll listener
   useEffect(() => {
@@ -34,7 +61,6 @@ export default function MessagesList() {
 
     const handleScroll = () => {
       const threshold = 100;
-      // ✅ علامة المقارنة < كانت ناقصة
       const atBottom =
         container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
       setIsAtBottom(atBottom);
@@ -44,7 +70,7 @@ export default function MessagesList() {
     return () => container.removeEventListener("scroll", handleScroll);
   }, [active]);
 
-  // ✅ fetch messages when active conversation changes
+  // ✅ fetch messages
   useEffect(() => {
     if (!active) return;
 
@@ -70,7 +96,7 @@ export default function MessagesList() {
     });
   }, [active?._id, currentUser._id]);
 
-  // ✅ لو جت رسالة جديدة وانت جوا الشات — ابعت markAsSeen فورًا
+  // ✅ markAsSeen لو جت رسالة جديدة وانت جوا الشات
   useEffect(() => {
     if (!active) return;
 
@@ -83,20 +109,26 @@ export default function MessagesList() {
       }
     });
 
-    return () => {
-      socket.off("newMessage");
-    };
+    return () => socket.off("newMessage");
   }, [active?._id, currentUser._id]);
 
-  // ✅ single clean listener for messagesSeen
+  // ✅ messagesSeen listener
   useEffect(() => {
     socket.on("messagesSeen", (data) => {
       dispatch(markMessagesSeen(data));
     });
 
-    return () => {
-      socket.off("messagesSeen");
-    };
+    return () => socket.off("messagesSeen");
+  }, [dispatch]);
+
+  // ✅ conversationArchived listener
+  useEffect(() => {
+    socket.on("conversationArchived", ({ conversationId }) => {
+      dispatch(removeConversation(conversationId));
+      setShowDropdown(false);
+    });
+
+    return () => socket.off("conversationArchived");
   }, [dispatch]);
 
   // ✅ scroll to bottom when switching conversations
@@ -105,13 +137,27 @@ export default function MessagesList() {
     messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
   }, [active?._id]);
 
-  // ✅ auto-scroll فقط لو انت في الأسفل
+  // ✅ auto-scroll
   useEffect(() => {
     if (!messagesRef.current) return;
     if (isAtBottom) {
       messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
     }
   }, [messages, isAtBottom]);
+
+  // ✅ reset search لما تغير الشات
+  useEffect(() => {
+    setShowSearch(false);
+    setSearchQuery("");
+  }, [active?._id]);
+
+  const handleArchive = () => {
+    socket.emit("archiveConversation", {
+      conversationId: active._id,
+      userId: currentUser._id,
+    });
+    setShowDropdown(false);
+  };
 
   if (!active) return <NotSelectedChat />;
 
@@ -132,30 +178,73 @@ export default function MessagesList() {
           )}
 
           <div className="receiver">
-            {receiver
-              ? `${receiver.firstName} ${receiver.lastName}`
-              : "Unknown User"}
+            {receiver ? `${receiver.firstName} ${receiver.lastName}` : "Unknown User"}
           </div>
         </div>
 
         <div className="chat-actions">
-          <div className="call">
-            <FaPhone />
-          </div>
-          <div className="video">
-            <FaVideo />
-          </div>
-          <div className="search">
+          <div className="call"><FaPhone /></div>
+          <div className="video"><FaVideo /></div>
+
+          {/* ✅ زرار السيرش */}
+          <div
+            className="search"
+            onClick={() => {
+              setShowSearch((prev) => !prev);
+              setSearchQuery("");
+            }}
+          >
             <FaSearch />
           </div>
-          <div className="more-options">
-            <FiMoreVertical />
+
+          {/* ✅ More options مع dropdown */}
+          <div className="more-options" ref={dropdownRef}>
+            <div
+              className="more-options-btn"
+              onClick={() => setShowDropdown((prev) => !prev)}
+            >
+              <FiMoreVertical />
+            </div>
+
+            {showDropdown && (
+              <div className="dropdown-menu chat-more-options">
+                <button className="dropdown-item" onClick={handleArchive}>
+                  <FiArchive />
+                  <span>{isArchived ? "Unarchive Chat" : "Archive Chat"}</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
+      {/* ✅ سيرش بار جوا الشات */}
+      {showSearch && (
+        <div className="message-search-bar">
+          <input
+            type="text"
+            placeholder="Search messages..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            autoFocus
+          />
+          {searchQuery && (
+            <span className="search-count">
+              {filteredMessages.length} result{filteredMessages.length !== 1 ? "s" : ""}
+            </span>
+          )}
+          <FiX
+            className="close-search"
+            onClick={() => {
+              setShowSearch(false);
+              setSearchQuery("");
+            }}
+          />
+        </div>
+      )}
+
       <div className="messages-container" ref={messagesRef}>
-        {messages.map((msg) => {
+        {displayedMessages.map((msg) => {
           const isMine = msg.sender?._id === currentUser?._id;
 
           return (
@@ -188,6 +277,10 @@ export default function MessagesList() {
             </div>
           );
         })}
+
+        {searchQuery && filteredMessages.length === 0 && (
+          <div className="no-results-messages">No messages found</div>
+        )}
       </div>
     </div>
   );

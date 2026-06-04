@@ -421,3 +421,74 @@
     align-items: center;
     justify-content: center;
 }
+
+
+.archive-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #aaa;
+  font-size: 1rem;
+  padding: 6px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  flex-shrink: 0;
+  transition: color 0.2s, background 0.2s;
+}
+
+.archive-btn:hover {
+  color: var(--color-tertiary);
+  
+}
+
+.unarchive-btn:hover {
+  color: var(--color-tertiary);
+  
+}
+
+
+.chatItem {
+  position: relative;
+  overflow: visible; /* ✅ مهم عشان الـ dropdown يظهر */
+}
+
+.conv-more-options {
+    
+  
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.conv-more-btn {
+  position: absolute;
+  top: 10px;
+  right: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #aaa;
+  font-size: 1rem;
+  padding: 6px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s, background 0.2s;
+}
+
+.conv-dropdown{
+    position: absolute;
+    
+    transform: translateX(-110%);
+    width: fit-content;
+    height: fit-content;
+    top: 40px;
+    border-top-right-radius: 0px!important ;
+    z-index: 1;
+}

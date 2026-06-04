@@ -41,6 +41,7 @@
     animation: pulse-shadow var(--animation-duration) infinite var(--transition-easing);
     border: var(--border-not-hovered);
   transition: border var(--transition-duration) var(--transition-easing);
+  position: relative;
 }
 
 .receiver-details{
@@ -79,6 +80,7 @@
     flex-direction: row;
     align-items: center;
     gap: var(--medium-padding);
+    position:relative;
 }
 
 .chat-actions div{
@@ -169,4 +171,23 @@
     align-items: center;
     color: var(--color-text-light);
     font-size: var(--msg-detail-font);
+}
+
+.chat-more-options{
+  height: fit-content;
+     position: absolute;
+
+  top: calc(100% + 12px) !important;
+  right: 0px!important;
+
+  transform: translateX(-100%);
+
+
+  
+
+  
+}
+
+.dropdown-item{
+  width: var(--full-percent);
 }

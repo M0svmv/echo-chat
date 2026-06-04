@@ -28,7 +28,6 @@ const chatSlice = createSlice({
 
     markMessagesSeen: (state, action) => {
       const { conversationId, userId } = action.payload;
-
       state.messages = state.messages.map((msg) =>
         msg.conversationId === conversationId && msg.sender?._id !== userId
           ? { ...msg, seen: true }
@@ -37,19 +36,39 @@ const chatSlice = createSlice({
     },
 
     updateConversation: (state, action) => {
-  const { hasNewMessage, ...updated } = action.payload;
-  const index = state.conversations.findIndex((c) => c._id === updated._id);
-  if (index !== -1) {
-    state.conversations[index] = updated;
+      const { hasNewMessage, ...updated } = action.payload;
+      const index = state.conversations.findIndex((c) => c._id === updated._id);
+      if (index !== -1) {
+        state.conversations[index] = updated;
+        if (hasNewMessage) {
+          state.conversations.sort(
+            (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)
+          );
+        }
+      }
+    },
 
-    // ✅ رتب بس لو جت رسالة جديدة
-    if (hasNewMessage) {
-      state.conversations.sort(
-        (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)
+    removeConversation: (state, action) => {
+      const conversationId = action.payload;
+      state.conversations = state.conversations.filter(
+        (c) => c._id !== conversationId
       );
-    }
-  }
-},
+      if (state.activeConversation?._id === conversationId) {
+        state.activeConversation = null;
+      }
+    },
+
+    addConversation: (state, action) => {
+      const exists = state.conversations.find(
+        (c) => c._id === action.payload._id
+      );
+      if (!exists) {
+        state.conversations.unshift(action.payload);
+        state.conversations.sort(
+          (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)
+        );
+      }
+    },
   },
 });
 
@@ -58,6 +77,8 @@ export const {
   setActiveConversation,
   markMessagesSeen,
   updateConversation,
+  removeConversation,
+  addConversation,
   setMessages,
   addMessage,
 } = chatSlice.actions;

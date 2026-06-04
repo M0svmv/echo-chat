@@ -55,7 +55,6 @@ io.on('connection', (socket) => {
           },
         });
 
-      // ✅ emit مع hasNewMessage: false
       updatedConversation.participants.forEach((participant) => {
         const socketId = onlineUsers.get(participant._id.toString());
         if (socketId) {
@@ -73,6 +72,36 @@ io.on('connection', (socket) => {
       const receiverSocketId = onlineUsers.get(receiverId._id.toString());
       if (receiverSocketId) {
         io.to(receiverSocketId).emit("messagesSeen", { conversationId });
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  });
+
+  socket.on("archiveConversation", async ({ conversationId, userId }) => {
+    try {
+      const conversation = await Conversation.findById(conversationId);
+
+      if (!conversation) return;
+
+      const isArchived = conversation.archivedBy.some(
+        (id) => id.toString() === userId.toString()
+      );
+
+      if (isArchived) {
+        conversation.archivedBy.pull(userId);
+      } else {
+        conversation.archivedBy.push(userId);
+      }
+
+      await conversation.save();
+
+      const userSocketId = onlineUsers.get(userId.toString());
+      if (userSocketId) {
+        io.to(userSocketId).emit("conversationArchived", {
+          conversationId,
+          isArchived: !isArchived,
+        });
       }
     } catch (error) {
       console.log(error);
