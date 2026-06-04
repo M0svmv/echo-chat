@@ -27,9 +27,18 @@ const authSlice = createSlice({
         // mark that an auth initialization attempt completed (success or failure)
         setInitialized: (state) => {
             state.initialized = true;
+        },
+
+        updateProfileSuccess: (state, action) => {
+            if (state.user) {
+                // دمج البيانات القديمة مع البيانات الجديدة المحدثة القادمة من الباك إند
+                state.user = { ...state.user, ...action.payload };
+                // تحديث الـ localStorage بالبيانات الجديدة فوراً
+                localStorage.setItem('user', JSON.stringify(state.user));
+            }
         }
     }
 });
 
-export const {setCredentials, logout, setInitialized} = authSlice.actions;
+export const {setCredentials, logout, setInitialized, updateProfileSuccess} = authSlice.actions;
 export default authSlice.reducer;

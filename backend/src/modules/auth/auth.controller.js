@@ -117,3 +117,54 @@ exports.logout = async (req, res) => {
       .json({ message: messages.INTERNAL_ERROR, error: error.message });
   }
 };
+
+
+exports.updateProfile = async (req,res) =>{
+  try {
+    const userId = req.user._id;
+    const { firstName, lastName, username, email } = req.body;
+
+    // 1. بناء أوبجكت التعديل بالبيانات النصية القادمة
+    let updateData = { firstName, lastName, username, email };
+
+    // 2. التحقق من فريدية الـ username والـ email لو تم تغييرهم
+    if (username || email) {
+      const existingUser = await User.findOne({
+        _id: { $ne: userId }, // ابحث في كل المستخدمين ما عدا اليوزر الحالي
+        $or: [
+          ...(username ? [{ username }] : []),
+          ...(email ? [{ email }] : [])
+        ]
+      });
+
+      if (existingUser) {
+        return res.status(400).json({ 
+          message: existingUser.username === username 
+            ? "Username is already taken" 
+            : "Email is already registered" 
+        });
+      }
+    }
+
+    // 3. لو المستخدم رفع صورة جديدة، بنضيف لينك Cloudinary لأوبجكت التعديل
+    if (req.file) {
+      updateData.avatar = req.file.path;
+    }
+
+    // 4. تحديث البيانات في الداتابيز
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $set: updateData },
+      { new: true, runValidators: true } // runValidators عشان يتأكد من شروط السكيما
+    ).select("-password"); // مستحيل نرجع الباسورد للفرونت إند بالطبع
+
+    // 5. الـ Response الراجع ده هو اللي Redux هيستقبله كـ Payload
+    return res.status(200).json({
+      message: "Profile updated successfully",
+      user: updatedUser
+    });
+
+  } catch (error) {
+    return res.status(500).json({ error: error.message || "Internal server error" });
+  }
+}
