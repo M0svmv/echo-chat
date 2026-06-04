@@ -169,7 +169,7 @@ export default function Navbar() {
             <div className="dropdown-menu">
               <button> <TbUser /> Profile</button>
               <button><TbUserEdit  /> Edit Profile</button>
-              <button><TbUsers /> Friends</button>
+              <NavLink to="/friends"><TbUsers /> Friends</NavLink>
               <button onClick={handleLogout}> <TbLogout /> Logout</button>
             </div>
           )}

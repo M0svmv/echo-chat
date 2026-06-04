@@ -13,6 +13,8 @@ router.get("/", protect, conversationController.getUserConversations);
 
 router.get("/archive", protect, conversationController.getArchivedConversations);
 
+router.get("/:friendId", protect, conversationController.getConversationByFriendId);
+
 router.get("/search", protect, conversationController.searchNewUsers);
 
 module.exports = router;

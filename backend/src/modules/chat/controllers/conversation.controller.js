@@ -129,3 +129,25 @@ exports.toggleArchiveConversation = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
+exports.getConversationByFriendId = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { friendId } = req.params;
+    const conversation = await Conversation.findOne({
+      participants: { $all: [userId, friendId] },
+    }) .populate("participants", "firstName lastName username")
+  .populate({
+    path: "lastMessage",
+    populate: {
+      path: "sender",
+      select: "username firstName lastName",
+    },
+  });
+    return res.status(200).json(conversation);
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error" });
+  }
+  
+};
