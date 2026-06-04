@@ -189,7 +189,7 @@
 .chat-items-container{
     width: var(--full-percent);
     height: var(--full-percent);
-    overflow-y:scroll;
+    overflow-y:auto;
     padding-right: var(--small-padding);
 }
 

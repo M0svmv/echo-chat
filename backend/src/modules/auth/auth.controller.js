@@ -123,10 +123,10 @@ exports.logout = async (req, res) => {
 exports.updateProfile = async (req,res) =>{
   try {
     const userId = req.user._id;
-    const { firstName, lastName, username, email } = req.body;
+    const { firstName, lastName, username, email, bio } = req.body;
 
     // 1. بناء أوبجكت التعديل بالبيانات النصية القادمة
-    let updateData = { firstName, lastName, username, email };
+    let updateData = { firstName, lastName, username, email,bio };
 
     // 2. التحقق من فريدية الـ username والـ email لو تم تغييرهم
     if (username || email) {

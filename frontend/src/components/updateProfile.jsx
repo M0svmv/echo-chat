@@ -18,6 +18,8 @@ export default function UpdateProfile() {
     lastName: currentUser?.lastName || "",
     username: currentUser?.username || "",
     email: currentUser?.email || "",
+    avatar: currentUser?.avatar || "",
+    bio: currentUser?.bio || "",
   });
 
   const [avatarFile, setAvatarFile] = useState(null);
@@ -58,6 +60,7 @@ export default function UpdateProfile() {
       data.append("lastName", formData.lastName);
       data.append("username", formData.username);
       data.append("email", formData.email);
+      data.append("bio", formData.bio);
       
       if (avatarFile) {
         data.append("avatar", avatarFile);
@@ -170,6 +173,15 @@ export default function UpdateProfile() {
             />
           </div>
 
+          <div className="form-group">
+            <label><FaUser /> Bio</label>
+            <textarea
+              type="text"
+              name="bio"
+              value={formData.bio}
+              onChange={handleChange}
+            />
+          </div>
           {/* زر الحفظ */}
           <button type="submit" className="save-profile-btn" disabled={loading}>
             <FaSave /> {loading ? "Saving Changes..." : "Save Changes"}
