@@ -263,7 +263,7 @@
     align-items: center;
     justify-content: center;
     font-size: var(--font-size-larger);
-    font-weight: var(--font-weight-bold);
+    font-weight: var(--font-weight-medium);
     color: var(--color-text-light);
 }
 
