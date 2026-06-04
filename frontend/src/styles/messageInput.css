@@ -110,7 +110,8 @@
     cursor: pointer;
     transition: all 0.3s ease;
     font-size: var(--font-size-large);
-    border: var(--border-not-hovered)
+    border: var(--border-not-hovered);
+    flex-shrink: 0;
 
   }
   

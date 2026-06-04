@@ -20,6 +20,8 @@ export default function ConversationsList() {
   const conversations = useSelector((state) => state.chat.conversations);
   const currentUser = useSelector((state) => state.auth.user);
 
+  const activeConversation = useSelector((state) => state.chat.activeConversation);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSearch, setActiveSearch] = useState("");
   const [openMenuId, setOpenMenuId] = useState(null);
@@ -122,17 +124,21 @@ export default function ConversationsList() {
             filteredConversations.map((conv) => {
               const otherUser = conv.participants.find(
                 (p) => p._id !== currentUser?._id
+                
               );
               const unreadCount =
                 conv.unreadCounts.find(
                   (u) => u.user === currentUser?._id || u.user?._id === currentUser?._id
                 )?.count || 0;
 
+                const isActive = activeConversation?._id === conv._id;
+
               return (
                 <li
                   key={conv._id}
                   onClick={() => dispatch(setActiveConversation(conv))}
-                  className="chatItem"
+                  
+                  className={`chatItem ${isActive ? "activeChat" : ""}`}
                 >
                   <div className="notifications-badge">
                     {unreadCount > 0 && <span className="badge">{unreadCount}</span>}

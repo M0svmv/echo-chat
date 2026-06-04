@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useMemo, memo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import socket from "../socket/socket";
 import api from "../api/axios";
@@ -16,6 +16,27 @@ import { FiMoreVertical, FiArchive, FiX } from "react-icons/fi";
 
 import NotSelectedChat from "./NotSelectedChat";
 
+// 🔥 1. كامبوننت الأفاتار المعزول والمحمي من الـ Re-render المتكرر
+const ChatAvatar = memo(({ avatar, firstName, lastName }) => {
+  if (avatar) {
+    return (
+      <div className="receiver-img">
+        <img src={avatar} alt="Profile" loading="lazy" />
+      </div>
+    );
+  }
+  
+  return (
+    <div className="avatar-placeholder">
+      {firstName && lastName ? firstName.charAt(0) + lastName.charAt(0) : "?"}
+    </div>
+  );
+});
+
+// تجنب حساب الـ memo للأفاتار إلا لو اللينك أو الاسم اتغير فعلياً
+ChatAvatar.displayName = "ChatAvatar";
+
+
 export default function MessagesList() {
   const dispatch = useDispatch();
 
@@ -23,9 +44,10 @@ export default function MessagesList() {
   const active = useSelector((state) => state.chat.activeConversation);
   const currentUser = useSelector((state) => state.auth.user);
 
-  const receiver = active?.participants?.find(
-    (p) => p._id !== currentUser?._id
-  );
+  // تثبيت حساب الـ receiver بالـ useMemo
+  const receiver = useMemo(() => {
+    return active?.participants?.find((p) => p._id !== currentUser?._id);
+  }, [active?._id, currentUser?._id]);
 
   const messagesRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -97,7 +119,7 @@ export default function MessagesList() {
     });
   }, [active?._id, currentUser._id]);
 
-  // ✅ markAsSeen لو جت رسالة جديدة وانت جوا الشات
+  // ✅ markAsSeen و استقبال الرسائل الجديدة (شغال تمام برا وجوا)
   useEffect(() => {
     if (!active) return;
 
@@ -112,7 +134,7 @@ export default function MessagesList() {
     });
 
     return () => socket.off("newMessage");
-  }, [active?._id, currentUser._id]);
+  }, [active?._id, currentUser._id, dispatch]);
 
   // ✅ messagesSeen listener
   useEffect(() => {
@@ -167,17 +189,13 @@ export default function MessagesList() {
     <div className="chatContainer">
       <div className="chat-container-header">
         <div className="receiver-details">
-          {receiver?.avatar ? (
-            <div className="receiver-img">
-              <img src={receiver.avatar} alt="Profile" />
-            </div>
-          ) : (
-            <div className="avatar-placeholder">
-              {receiver
-                ? receiver.firstName.charAt(0) + receiver.lastName.charAt(0)
-                : "?"}
-            </div>
-          )}
+          
+          {/* 🔥 2. استدعاء كومبوننت الصورة المعزول هنا */}
+          <ChatAvatar 
+            avatar={receiver?.avatar} 
+            firstName={receiver?.firstName} 
+            lastName={receiver?.lastName} 
+          />
 
           <div className="receiver">
             {receiver ? `${receiver.firstName} ${receiver.lastName}` : "Unknown User"}
