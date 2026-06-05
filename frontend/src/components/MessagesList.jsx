@@ -11,7 +11,8 @@ import {
 } from "../features/chat/chatSlice";
 import "../styles/messagesList.css";
 
-import { FaSearch, FaCheck, FaCheckDouble, FaPhone, FaVideo } from "react-icons/fa";
+import { FaSearch, FaCheck, FaCheckDouble,  FaVideo } from "react-icons/fa";
+import { FaPhone } from "react-icons/fa6";
 import { FiMoreVertical, FiArchive, FiX } from "react-icons/fi";
 
 import NotSelectedChat from "./NotSelectedChat";
@@ -33,7 +34,6 @@ const ChatAvatar = memo(({ avatar, firstName, lastName }) => {
   );
 });
 
-// تجنب حساب الـ memo للأفاتار إلا لو اللينك أو الاسم اتغير فعلياً
 ChatAvatar.displayName = "ChatAvatar";
 
 

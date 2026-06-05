@@ -28,6 +28,36 @@ const conversationSchema = new mongoose.Schema(
     ref: "User",
   }],
 
+    isGroup: {
+      type: Boolean,
+      default: false,
+    },
+
+    groupAdmin: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    }],
+
+    groupName: {
+      type: String,
+      default: "",
+    },
+
+    groupImage: {
+      type: String,
+      default: "",
+    },
+
+    groupDescription: {
+      type: String,
+      default: "",
+    },
+
+    adminPermission: {
+      type: Boolean,
+      default: false,
+    },
+
   },
   { timestamps: true }
 );
