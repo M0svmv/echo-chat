@@ -7,7 +7,7 @@ const tokens = require("../../utils/jwt.utils");
 const status = require("../../constants/httpStatus.constants");
 const messages = require("../../constants/messages.constants");
 
-const { comparePassword, hashPassword } = require("../../utils/password.utils");
+const { comparePassword, hashPassword, validatePassword } = require("../../utils/password.utils");
 
 exports.register = async (req, res) => {
   try {
@@ -174,9 +174,9 @@ exports.updateProfile = async (req,res) =>{
 
 exports.updatePassword = async (req, res) => {
   const userId = req.user._id;
-
+  const { currentPassword, newPassword, confirmNewPassword } = req.body;
   try {
-    const { currentPassword, newPassword, confirmNewPassword } = req.body;
+    
 
     const user = await User.findById(userId);
 
@@ -184,21 +184,33 @@ exports.updatePassword = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const isPasswordValid = comparePassword(currentPassword, user.password);
+    const isPasswordValid = await comparePassword(currentPassword, user.password);
 
     if (!isPasswordValid) {
       return res.status(400).json({ message: "Current password is incorrect" });
     }
 
+    
+
     if (newPassword !== confirmNewPassword) {
       return res.status(400).json({ message: "Passwords do not match" });
     }
 
-    user.password = hashPassword(newPassword); ;
+    if(!validatePassword(newPassword)){
+      return res.status(400).json({ message: "Password must be at least 8 characters long, and include at least one uppercase letter, one lowercase letter, one number, and one special character." });
+    }
+
+    if (newPassword === currentPassword) {
+      return res.status(400).json({ message: "New password cannot be the same as the current password" });
+    }
+
+
+
+    user.password = await hashPassword(newPassword); 
     await user.save();
 
     return res.status(200).json({ message: "Password updated successfully" });
   } catch (error) {
-    return res.status(500).json({ error: error.message || "Internal server error" });
+    return res.status(500).json({ error: error.message  });
   }
  };

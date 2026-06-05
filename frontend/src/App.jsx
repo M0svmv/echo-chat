@@ -23,6 +23,7 @@ import ArchiveChats from './components/ArchiveChats.jsx';
 import Friends from './components/FriendsList.jsx';
 import UpdateProfile from './components/UpdateProfile.jsx';
 import Profile from './components/Profile.jsx';
+import ChangePassword from './components/ChangePassword.jsx';
 
 
 
@@ -73,6 +74,7 @@ function App() {
         <Route path='/archive' element={<ArchiveChats />} />
         <Route path='/friends' element={<Friends />} />
         <Route path='/updateProfile' element={<UpdateProfile />} />
+        <Route path='/changePassword' element={<ChangePassword />} />
         <Route path='/profile' element={<Profile />} />
         
         </Route>

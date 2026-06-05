@@ -1,5 +1,5 @@
 import { useSelector } from "react-redux";
-import { FaUser, FaAt, FaEnvelope ,FaEdit} from "react-icons/fa";
+import { FaUser, FaAt, FaEnvelope ,FaEdit,FaLock} from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import "../styles/chat.css";
 
@@ -58,6 +58,14 @@ export default function Profile() {
             />
           </div>
 
+          <button 
+          className="edit-profile-navigation-btn" 
+          onClick={() => navigate("/changePassword")} 
+          style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
+        >
+          <FaLock />
+          <span>Change Password</span>
+        </button>
           <button 
           className="edit-profile-navigation-btn" 
           onClick={() => navigate("/updateProfile")} 
