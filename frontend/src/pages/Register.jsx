@@ -3,7 +3,7 @@ import api from "../api/axios";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "../features/auth/authSlice";
 import { useNavigate, Link } from "react-router-dom";
-import { FiUser, FiLock, FiMail } from "react-icons/fi";
+import { FiUser, FiLock, FiMail, FiEye, FiEyeOff } from "react-icons/fi";
 import "./Login.css"; // هنستخدم نفس CSS بتاع اللوجين
 
 export default function Register() {
@@ -14,9 +14,19 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
+  };
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -34,6 +44,7 @@ export default function Register() {
         username,
         email,
         password,
+        confirmPassword,
       });
 
       dispatch(
@@ -154,13 +165,14 @@ export default function Register() {
             </span>
 
             <input
-              type="password"
+              type={showPassword ? "text" :"password" }
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               className="input-field input-field-password"
             />
+            
           </div>
 
           {/* Confirm Password */}
@@ -170,13 +182,14 @@ export default function Register() {
             </span>
 
             <input
-              type="password"
+              type={showPassword ? "text" :"password" }
               placeholder="Confirm Password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
               className="input-field input-field-password"
             />
+            
           </div>
 
           {/* Divider */}

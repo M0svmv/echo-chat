@@ -13,3 +13,7 @@ exports.validatePassword = (password) => {
     const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})/;
     return regex.test(password);
 }
+
+exports.validateMatchPassword = (password, confirmPassword) => {
+    return password === confirmPassword;
+}

@@ -17,11 +17,11 @@ export default function Profile() {
 
   return (
     <div className="chatsContainer">
-      <h3>Profile</h3>
+      <h3 className="pg-title">Profile</h3>
       
       
       <div className="chat-items-container">
-        <div className="profile-form">
+        <div className="profile-form" >
          <div className="avatar-upload-section">
             <div className="profile-avatar-container read-only">
               {avatar ? (
@@ -34,11 +34,11 @@ export default function Profile() {
               )}
             </div>
           </div>
-
-          <span className="profile-name" style={{ textAlign: "center" , fontSize: "var(--font-size-larger)" ,color:"var(--color-text-light)!important"}}>{`${firstName} ${lastName}`}</span>
-
+          <div className="profile-name-container" style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <span className="profile-name" style={{ textAlign: "center" , fontSize: "var(--font-size-larger)" ,color:"var(--color-text-light)!important"}}>{`${firstName} ${lastName} `}<span className="bio-tag" style={{ textAlign: "center" }}>@{username}</span></span>
+          
           <span className="bio-tag" style={{ textAlign: "center" }}>{bio}</span>
-
+          </div>    
 
           <div className="form-group">
             <label><FaAt /> Username</label>

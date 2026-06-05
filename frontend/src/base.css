@@ -12,6 +12,8 @@
     --color-text-dark: #000;
     --color-text-light: #ffffff;
     --color-text-placeholder: #4b5563;
+    --color-text-disabled: #444;
+    --color-input-bg: #2a2a2a;
     --color-msg-bg: #f9f9f9;
     --color-msg-bg-2: #1e293b;
     --color-error: #ff3d71;
@@ -82,9 +84,11 @@
 
     --card-padding: 2rem;
     --tiny-padding: 4px;
+    --x-small-padding: 6px;
     --small-padding: 8px;
     --regular-padding: 12px;
     --medium-padding: 16px;
+    --md-padding: 20px;
     --large-padding: 32px;
     --extra-large-padding: 48px;
     --2x-large-padding: 64px;
@@ -97,6 +101,8 @@
 
     --msg-gap: 3px;
     --btns-gap:8px;
+    --label-gap: 5px;
+    --form-gap: 15px;
 
     --btn-size:30px;
 
@@ -122,6 +128,8 @@
     --max-width: 400px;
 
     --avatar-size: 50px;
+
+    --avatar-container-size: 100px;
 
     --login-width: 400px;
 

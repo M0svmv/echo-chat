@@ -59,7 +59,7 @@ export default function ChangePassword() {
 
   return (
     <div className="chatsContainer">
-      <h3>Change Password</h3>
+      <h3 className="pg-title">Change Password</h3>
       
       <div className="chat-items-container">
         <form onSubmit={handleSubmit} className="profile-form">

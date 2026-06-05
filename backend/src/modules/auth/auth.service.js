@@ -8,11 +8,13 @@ const {
   verifyRefreshToken,
   verifyAccessToken
 } = require("../../utils/jwt.utils.js");
-const { hashPassword, comparePassword } = require("../../utils/password.utils.js");
+const { hashPassword, comparePassword, validatePassword, validateMatchPassword } = require("../../utils/password.utils.js");
 
 const registerUser = async (userData) => {
-  const { firstName, lastName, username, email, password } = userData;
+  const { firstName, lastName, username, email, password, confirmPassword } = userData;
   const hashedPassword = await hashPassword(password);
+  if(!validatePassword(password)) throw new Error("Password must be at least 8 characters long, and include at least one uppercase letter, one lowercase letter, one number, and one special character.");
+  if(!validateMatchPassword(password, confirmPassword)) throw new Error("Passwords do not match.");
   const user = await User.create({
     firstName,
     lastName,

@@ -7,7 +7,7 @@ const tokens = require("../../utils/jwt.utils");
 const status = require("../../constants/httpStatus.constants");
 const messages = require("../../constants/messages.constants");
 
-const { comparePassword, hashPassword, validatePassword } = require("../../utils/password.utils");
+const { comparePassword, hashPassword, validatePassword, validateMatchPassword } = require("../../utils/password.utils");
 
 exports.register = async (req, res) => {
   try {

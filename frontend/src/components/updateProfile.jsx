@@ -89,7 +89,7 @@ export default function UpdateProfile() {
   return (
     <div className="chatsContainer">
       {/* الهيدر بنفس روح الـ ConversationsList */}
-      <h3>Edit Profile</h3>
+      <h3 className="pg-title">Edit Profile</h3>
       
       <div className="chat-items-container">
         <form onSubmit={handleSubmit} className="profile-form">
@@ -175,7 +175,7 @@ export default function UpdateProfile() {
 
           <div className="form-group">
             <label><FaUser /> Bio</label>
-            <textarea
+            <input
               type="text"
               name="bio"
               value={formData.bio}
