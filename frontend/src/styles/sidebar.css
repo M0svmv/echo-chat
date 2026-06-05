@@ -8,7 +8,7 @@
     gap: var(--small-padding);
     max-width: var(--sidebar-width-max);
     min-width: var(--sidebar-width-min);
-        
+        position: relative;
     
     
 }
@@ -69,6 +69,31 @@
     font-weight: var(--font-weight-bold);
     color: var(--color-text-light);
     cursor: pointer;
+}
+
+.back-btn{
+    position: absolute;
+    right: var(--extra-large-padding);
+    width: var(--btn-size);
+    aspect-ratio: 1/1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-larger);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-light);
+    cursor: pointer;
+    background: var(--color-tertiary);
+    border-radius: var(--border-radius-sm);
+    border: none;
+    transition: all var(--transition-duration) var(--transition-easing);
+
+}
+
+.back-btn:hover{
+    background: var(--color-tertiary-bg);
+    outline: var(--border-tertiary);
+    color: var(--color-tertiary);
 }
 
 .chatsContainer{

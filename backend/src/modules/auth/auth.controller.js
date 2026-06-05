@@ -7,6 +7,8 @@ const tokens = require("../../utils/jwt.utils");
 const status = require("../../constants/httpStatus.constants");
 const messages = require("../../constants/messages.constants");
 
+const { comparePassword, hashPassword } = require("../../utils/password.utils");
+
 exports.register = async (req, res) => {
   try {
     const user = await authService.registerUser(req.body);
@@ -169,3 +171,34 @@ exports.updateProfile = async (req,res) =>{
     return res.status(500).json({ error: error.message || "Internal server error" });
   }
 }
+
+exports.updatePassword = async (req, res) => {
+  const userId = req.user._id;
+
+  try {
+    const { currentPassword, newPassword, confirmNewPassword } = req.body;
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const isPasswordValid = comparePassword(currentPassword, user.password);
+
+    if (!isPasswordValid) {
+      return res.status(400).json({ message: "Current password is incorrect" });
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      return res.status(400).json({ message: "Passwords do not match" });
+    }
+
+    user.password = hashPassword(newPassword); ;
+    await user.save();
+
+    return res.status(200).json({ message: "Password updated successfully" });
+  } catch (error) {
+    return res.status(500).json({ error: error.message || "Internal server error" });
+  }
+ };

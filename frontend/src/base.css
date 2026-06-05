@@ -26,10 +26,14 @@
     --color-bg-opacity: 0.1;
     --color-border-opacity: 0.3;
 
+    --color-tertiary-bg:rgba(var(--color-tertiary-rgb), var(--color-bg-opacity));
+    --color-secondary-bg:rgba(var(--color-secondary-rgb), var(--color-bg-opacity));
     --color-error-bg:rgba(var(--color-error-rgb), var(--color-bg-opacity));
     --color-warning-bg:rgba(var(--color-warning-rgb), var(--color-bg-opacity));
     --color-success-bg:rgba(var(--color-success-rgb), var(--color-bg-opacity));
 
+    --border-tertiary:1.5px solid rgba(var(--color-tertiary-rgb), var(--color-border-opacity));
+    --border-secondary:1.5px solid rgba(var(--color-secondary-rgb), var(--color-border-opacity));
     --border-error:1.5px solid rgba(var(--color-error-rgb), var(--color-border-opacity));
     --border-warning:1.5px solid rgba(var(--color-warning-rgb), var(--color-border-opacity));
     --border-success:1.5px solid rgba(var(--color-success-rgb), var(--color-border-opacity));
@@ -82,7 +86,8 @@
     --regular-padding: 12px;
     --medium-padding: 16px;
     --large-padding: 32px;
-    --extra-large-padding: 64px;
+    --extra-large-padding: 48px;
+    --2x-large-padding: 64px;
 
 
     --small-margin: 8px;
@@ -92,6 +97,8 @@
 
     --msg-gap: 3px;
     --btns-gap:8px;
+
+    --btn-size:30px;
 
     --msg-detail-font: 10px;
 

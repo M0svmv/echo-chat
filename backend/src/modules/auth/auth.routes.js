@@ -10,5 +10,6 @@ router.post('/refresh', authController.refreshToken);
 router.post('/logout', authController.logout);
 
 router.put('/update-profile',protect,upload.single('avatar'), authController.updateProfile);
+router.put('/update-password',protect, authController.updatePassword);
 
 module.exports = router;
