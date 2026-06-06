@@ -47,6 +47,7 @@ io.on('connection', (socket) => {
 
       const updatedConversation = await Conversation.findById(conversationId)
         .populate("participants", "firstName lastName username avatar")
+        .populate("groupAdmin", "firstName lastName username avatar")
         .populate({
           path: "lastMessage",
           populate: {
@@ -55,6 +56,8 @@ io.on('connection', (socket) => {
           },
         });
 
+      if (!updatedConversation) return;
+
       updatedConversation.participants.forEach((participant) => {
         const socketId = onlineUsers.get(participant._id.toString());
         if (socketId) {
@@ -62,17 +65,12 @@ io.on('connection', (socket) => {
             ...updatedConversation.toObject(),
             hasNewMessage: false,
           });
+
+          if (participant._id.toString() !== userId.toString()) {
+            io.to(socketId).emit("messagesSeen", { conversationId });
+          }
         }
       });
-
-      const receiverId = updatedConversation.participants.find(
-        (p) => p._id.toString() !== userId
-      );
-
-      const receiverSocketId = onlineUsers.get(receiverId._id.toString());
-      if (receiverSocketId) {
-        io.to(receiverSocketId).emit("messagesSeen", { conversationId });
-      }
     } catch (error) {
       console.log(error);
     }
@@ -81,7 +79,6 @@ io.on('connection', (socket) => {
   socket.on("archiveConversation", async ({ conversationId, userId }) => {
     try {
       const conversation = await Conversation.findById(conversationId);
-
       if (!conversation) return;
 
       const isArchived = conversation.archivedBy.some(

@@ -2,7 +2,7 @@ import "../styles/navbar.css";
 
 import { FiHome } from "react-icons/fi";
 import { LuUserSearch } from "react-icons/lu";
-import { TbUserShare, TbUserDown, TbSettings,TbUser,TbUserEdit,TbUsers, TbLogout,TbShield } from "react-icons/tb";
+import { TbUserShare, TbUserDown, TbSettings,TbUser,TbUserEdit,TbUsers, TbLogout,TbShield ,TbUsersGroup} from "react-icons/tb";
 import { MdLight } from "react-icons/md";
 import { GoArchive } from "react-icons/go";
 import { RiNotificationLine } from "react-icons/ri";
@@ -94,6 +94,11 @@ export default function Navbar() {
           <li className="nav-item">
             <NavLink className={({ isActive }) => isActive ? "nav-link nav-home active" : "nav-link nav-home"} to="/">
               <FiHome />
+            </NavLink>
+          </li>
+          <li className="nav-item">
+            <NavLink className={({ isActive }) => isActive ? "nav-link nav-home active" : "nav-link nav-home"} to="/groups">
+              <TbUsersGroup />
             </NavLink>
           </li>
 

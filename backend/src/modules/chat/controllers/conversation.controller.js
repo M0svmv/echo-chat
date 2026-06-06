@@ -524,6 +524,7 @@ exports.updateGroupDetails = async (req, res) => {
 };
 
 
+
 exports.demoteAdmin = async (req, res) => {
   try {
     const userId = req.user._id;

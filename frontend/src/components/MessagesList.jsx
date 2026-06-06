@@ -11,14 +11,28 @@ import {
 } from "../features/chat/chatSlice";
 import "../styles/messagesList.css";
 
-import { FaSearch, FaCheck, FaCheckDouble,  FaVideo } from "react-icons/fa";
+import { FaSearch, FaCheck, FaCheckDouble, FaVideo } from "react-icons/fa";
 import { FaPhone } from "react-icons/fa6";
 import { FiMoreVertical, FiArchive, FiX } from "react-icons/fi";
 
 import NotSelectedChat from "./NotSelectedChat";
 
-// 🔥 1. كامبوننت الأفاتار المعزول والمحمي من الـ Re-render المتكرر
-const ChatAvatar = memo(({ avatar, firstName, lastName }) => {
+const ChatAvatar = memo(({ isGroup, groupImage, groupName, avatar, firstName, lastName }) => {
+  if (isGroup) {
+    if (groupImage) {
+      return (
+        <div className="receiver-img">
+          <img src={groupImage} alt={groupName} loading="lazy" />
+        </div>
+      );
+    }
+    return (
+      <div className="avatar-placeholder">
+        {groupName ? groupName.charAt(0).toUpperCase() : "G"}
+      </div>
+    );
+  }
+
   if (avatar) {
     return (
       <div className="receiver-img">
@@ -36,7 +50,6 @@ const ChatAvatar = memo(({ avatar, firstName, lastName }) => {
 
 ChatAvatar.displayName = "ChatAvatar";
 
-
 export default function MessagesList() {
   const dispatch = useDispatch();
 
@@ -44,10 +57,10 @@ export default function MessagesList() {
   const active = useSelector((state) => state.chat.activeConversation);
   const currentUser = useSelector((state) => state.auth.user);
 
-  // تثبيت حساب الـ receiver بالـ useMemo
   const receiver = useMemo(() => {
-    return active?.participants?.find((p) => p._id !== currentUser?._id);
-  }, [active?._id, currentUser?._id]);
+    if (!active || active.isGroup) return null;
+    return active.participants?.find((p) => p._id !== currentUser?._id);
+  }, [active?._id, active?.isGroup, currentUser?._id]);
 
   const messagesRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -63,9 +76,8 @@ export default function MessagesList() {
 
   const displayedMessages = searchQuery ? filteredMessages : messages;
 
-  const isArchived = active?.archivedBy?.includes(currentUser._id);
+  const isArchived = active?.archivedBy?.includes(currentUser?._id);
 
-  // ✅ اقفل الـ dropdown لو دوس برا
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -76,7 +88,6 @@ export default function MessagesList() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // ✅ scroll listener
   useEffect(() => {
     if (!active || !messagesRef.current) return;
 
@@ -93,7 +104,6 @@ export default function MessagesList() {
     return () => container.removeEventListener("scroll", handleScroll);
   }, [active]);
 
-  // ✅ fetch messages
   useEffect(() => {
     if (!active) return;
 
@@ -109,7 +119,6 @@ export default function MessagesList() {
     fetchMessages();
   }, [active?._id, dispatch]);
 
-  // ✅ emit markAsSeen عند دخول الشات
   useEffect(() => {
     if (!active) return;
 
@@ -119,7 +128,6 @@ export default function MessagesList() {
     });
   }, [active?._id, currentUser._id]);
 
-  // ✅ markAsSeen و استقبال الرسائل الجديدة (شغال تمام برا وجوا)
   useEffect(() => {
     if (!active) return;
 
@@ -136,32 +144,32 @@ export default function MessagesList() {
     return () => socket.off("newMessage");
   }, [active?._id, currentUser._id, dispatch]);
 
-  // ✅ messagesSeen listener
   useEffect(() => {
     socket.on("messagesSeen", (data) => {
-      dispatch(markMessagesSeen(data));
+      if (active && data.conversationId === active._id) {
+        dispatch(markMessagesSeen(data));
+      }
     });
 
     return () => socket.off("messagesSeen");
-  }, [dispatch]);
+  }, [active?._id, dispatch]);
 
-  // ✅ conversationArchived listener
   useEffect(() => {
     socket.on("conversationArchived", ({ conversationId }) => {
-      dispatch(removeConversation(conversationId));
-      setShowDropdown(false);
+      if (active && conversationId === active._id) {
+        dispatch(removeConversation(conversationId));
+        setShowDropdown(false);
+      }
     });
 
     return () => socket.off("conversationArchived");
-  }, [dispatch]);
+  }, [active?._id, dispatch]);
 
-  // ✅ scroll to bottom when switching conversations
   useEffect(() => {
     if (!messagesRef.current) return;
     messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
   }, [active?._id]);
 
-  // ✅ auto-scroll
   useEffect(() => {
     if (!messagesRef.current) return;
     if (isAtBottom) {
@@ -169,7 +177,6 @@ export default function MessagesList() {
     }
   }, [messages, isAtBottom]);
 
-  // ✅ reset search لما تغير الشات
   useEffect(() => {
     setShowSearch(false);
     setSearchQuery("");
@@ -190,23 +197,29 @@ export default function MessagesList() {
       <div className="chat-container-header">
         <div className="receiver-details">
           
-          {/* 🔥 2. استدعاء كومبوننت الصورة المعزول هنا */}
           <ChatAvatar 
+            isGroup={active.isGroup}
+            groupImage={active.groupImage}
+            groupName={active.groupName}
             avatar={receiver?.avatar} 
             firstName={receiver?.firstName} 
             lastName={receiver?.lastName} 
           />
 
           <div className="receiver">
-            {receiver ? `${receiver.firstName} ${receiver.lastName}` : "Unknown User"}
+            {active.isGroup 
+              ? active.groupName 
+              : receiver 
+                ? `${receiver.firstName} ${receiver.lastName}` 
+                : "Unknown User"
+            }
           </div>
         </div>
 
         <div className="chat-actions">
-          <div className="call"><FaPhone /></div>
-          <div className="video"><FaVideo /></div>
+          {!active.isGroup && <div className="call"><FaPhone /></div>}
+          {!active.isGroup && <div className="video"><FaVideo /></div>}
 
-          {/* ✅ زرار السيرش */}
           <div
             className="search"
             onClick={() => {
@@ -217,7 +230,6 @@ export default function MessagesList() {
             <FaSearch />
           </div>
 
-          {/* ✅ More options مع dropdown */}
           <div className="more-options" ref={dropdownRef}>
             <div
               className="more-options-btn"
@@ -238,7 +250,6 @@ export default function MessagesList() {
         </div>
       </div>
 
-      {/* ✅ سيرش بار جوا الشات */}
       {showSearch && (
         <div className="message-search-bar">
           <input
@@ -275,6 +286,9 @@ export default function MessagesList() {
               {!isMine && (
                 <div className="sender">
                   {msg.sender?.firstName} {msg.sender?.lastName}
+                  {active.isGroup && msg.sender?.username && (
+                    <span className="group-sender-username"> @{msg.sender.username}</span>
+                  )}
                 </div>
               )}
 
@@ -288,7 +302,7 @@ export default function MessagesList() {
                   })}
                 </div>
 
-                {isMine && (
+                {isMine && !active.isGroup && (
                   <div className="seen">
                     {msg.seen ? <FaCheckDouble /> : <FaCheck />}
                   </div>

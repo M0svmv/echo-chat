@@ -24,6 +24,7 @@ import Friends from './components/FriendsList.jsx';
 import UpdateProfile from './components/UpdateProfile.jsx';
 import Profile from './components/Profile.jsx';
 import ChangePassword from './components/ChangePassword.jsx';
+import GroupsList from './components/GroupsList.jsx';
 
 
 
@@ -68,6 +69,7 @@ function App() {
         <Route element={<UiLayout />} >
         <Route path='/' element={<Home />} >
         <Route index element={<ConversationsList />} />
+        <Route path='/groups' element={<GroupsList />} />
         <Route path='/available-users' element={<SendFriendRequest />} />
         <Route path='/friendRequests' element={<FriendRequests />} />
         <Route path='/requestsSent' element={<RequestsSent />} />

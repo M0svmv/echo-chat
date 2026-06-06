@@ -2,33 +2,32 @@ import { useEffect, useState, useRef, memo } from "react";
 import api from "../api/axios";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  setConversations,
   setActiveConversation,
-  updateConversation,
   removeConversation,
 } from "../features/chat/chatSlice";
 import socket from "../socket/socket";
 
-import { FaSearch, FaCheck, FaCheckDouble } from "react-icons/fa";
+import { FaSearch, FaPlus } from "react-icons/fa";
 import { IoCloseCircle } from "react-icons/io5";
-import { FiMoreVertical, FiArchive } from "react-icons/fi";
+import { FiMoreVertical, FiArchive, FiInfo } from "react-icons/fi";
 
+import CreateGroup from "./CreateGroup";
+import GroupDetails from "./GroupDetails";
 import "../styles/chat.css";
 
-const ConversationAvatar = memo(({ avatar, firstName, lastName }) => {
-  const hasAvatar = !!avatar;
+const GroupAvatar = memo(({ groupImage, groupName }) => {
+  const hasImage = !!groupImage;
 
   return (
-    <div className={hasAvatar ? "chatAvatar avatar-bg" : "chatAvatar"}>
-      {!hasAvatar ? (
+    <div className={hasImage ? "chatAvatar avatar-bg" : "chatAvatar"}>
+      {!hasImage ? (
         <div className="avatarPlaceholder">
-          {firstName?.charAt(0).toUpperCase()}
-          {lastName?.charAt(0).toUpperCase()}
+          {groupName?.charAt(0).toUpperCase() || "G"}
         </div>
       ) : (
         <img
-          src={avatar}
-          alt={`${firstName} ${lastName}`}
+          src={groupImage}
+          alt={groupName}
           className="avatar"
           loading="lazy"
         />
@@ -37,11 +36,15 @@ const ConversationAvatar = memo(({ avatar, firstName, lastName }) => {
   );
 });
 
-ConversationAvatar.displayName = "ConversationAvatar";
+GroupAvatar.displayName = "GroupAvatar";
 
-export default function ConversationsList() {
+export default function GroupsList() {
   const dispatch = useDispatch();
-  const conversations = useSelector((state) => state.chat.conversations);
+  
+  const [localGroups, setLocalGroups] = useState([]);
+  const [isCreating, setIsCreating] = useState(false);
+  const [selectedGroupDetails, setSelectedGroupDetails] = useState(null);
+  
   const currentUser = useSelector((state) => state.auth.user);
   const activeConversation = useSelector((state) => state.chat.activeConversation);
 
@@ -58,6 +61,11 @@ export default function ConversationsList() {
     setActiveSearch("");
   };
 
+  const toggleMenu = (e, convId) => {
+    e.stopPropagation();
+    setOpenMenuId((prev) => (prev === convId ? null : convId));
+  };
+
   const handleArchive = (e, conversationId) => {
     e.stopPropagation();
     socket.emit("archiveConversation", {
@@ -67,9 +75,10 @@ export default function ConversationsList() {
     setOpenMenuId(null);
   };
 
-  const toggleMenu = (e, convId) => {
+  const handleViewDetails = (e, group) => {
     e.stopPropagation();
-    setOpenMenuId((prev) => (prev === convId ? null : convId));
+    setSelectedGroupDetails(group);
+    setOpenMenuId(null);
   };
 
   useEffect(() => {
@@ -82,51 +91,89 @@ export default function ConversationsList() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const filteredConversations = conversations.filter((conv) => {
-    if (conv.isGroup) return false;
-    if (!activeSearch) return true;
-    
-    const otherUser = conv.participants.find((p) => p._id !== currentUser?._id);
-    const fullName = `${otherUser?.firstName} ${otherUser?.lastName}`.toLowerCase();
-    const username = otherUser?.username?.toLowerCase() || "";
-    const query = activeSearch.toLowerCase();
-    return fullName.includes(query) || username.includes(query);
-  });
-
   useEffect(() => {
-    const fetchConversations = async () => {
+    const fetchGroups = async () => {
       try {
-        const res = await api.get("/chats");
-        dispatch(setConversations(res.data));
+        const res = await api.get("/chats/group/myGroups");
+        setLocalGroups(res.data);
       } catch (error) {
-        console.error("Failed to fetch conversations:", error);
+        console.error("Failed to fetch groups:", error);
       }
     };
-    fetchConversations();
-  }, [dispatch]);
+    fetchGroups();
+  }, [isCreating]);
 
   useEffect(() => {
     socket.on("conversationUpdated", (updatedConv) => {
-      dispatch(updateConversation(updatedConv));
+      setLocalGroups((prevGroups) => {
+        const exists = prevGroups.some((g) => g._id === updatedConv._id);
+        if (exists) {
+          return prevGroups.map((g) => (g._id === updatedConv._id ? updatedConv : g));
+        } else {
+          if (updatedConv.participants?.some(p => (p._id || p) === currentUser?._id)) {
+            return [updatedConv, ...prevGroups];
+          }
+          return prevGroups;
+        }
+      });
+      
+      if (activeConversation?._id === updatedConv._id) {
+        dispatch(setActiveConversation(updatedConv));
+      }
+
+      setSelectedGroupDetails((prev) => prev?._id === updatedConv._id ? updatedConv : prev);
     });
+
     return () => socket.off("conversationUpdated");
-  }, [dispatch]);
+  }, [dispatch, activeConversation?._id, currentUser?._id]);
 
   useEffect(() => {
     socket.on("conversationArchived", ({ conversationId, isArchived }) => {
       if (isArchived) {
-        dispatch(removeConversation(conversationId));
+        setLocalGroups((prevGroups) => prevGroups.filter((g) => g._id !== conversationId));
+        if (activeConversation?._id === conversationId) {
+          dispatch(removeConversation(conversationId));
+        }
+        if (selectedGroupDetails?._id === conversationId) {
+          setSelectedGroupDetails(null);
+        }
       }
     });
+
     return () => socket.off("conversationArchived");
-  }, [dispatch]);
+  }, [dispatch, activeConversation?._id, selectedGroupDetails?._id]);
+
+  const filteredGroups = localGroups.filter((conv) => {
+    if (!activeSearch) return true;
+    const groupName = conv.groupName?.toLowerCase() || "";
+    const query = activeSearch.toLowerCase();
+    return groupName.includes(query);
+  });
+
+  if (isCreating) {
+    return <CreateGroup onBack={() => setIsCreating(false)} />;
+  }
+
+  if (selectedGroupDetails) {
+    return (
+      <GroupDetails 
+        group={selectedGroupDetails} 
+        currentUser={currentUser}
+        onBack={() => setSelectedGroupDetails(null)} 
+        onGroupUpdated={(updatedGroup) => {
+          setLocalGroups((prev) => prev.map((g) => g._id === updatedGroup._id ? updatedGroup : g));
+          setSelectedGroupDetails(updatedGroup);
+        }}
+      />
+    );
+  }
 
   return (
     <div className="chatsContainer">
       <div className="searchBar">
         <input
           type="text"
-          placeholder="Search..."
+          placeholder="Search groups..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") handleSearch(); }}
@@ -141,17 +188,26 @@ export default function ConversationsList() {
         </button>
       </div>
 
-      <h3>Chats</h3>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingRight: "10px" }}>
+        <h3>Group Chats</h3>
+        <button 
+          onClick={() => setIsCreating(true)}
+          style={{
+            display: "flex", alignItems: "center", gap: "5px", padding: "6px 12px",
+            background: "#28a745", color: "white", border: "none", borderRadius: "20px", cursor: "pointer", fontSize: "13px", fontWeight: "bold"
+          }}
+        >
+          <FaPlus size={12} /> New Group
+        </button>
+      </div>
+
       <div className="chat-items-container">
         <ul>
-          {filteredConversations.length > 0 ? (
-            filteredConversations.map((conv) => {
-              const otherUser = conv.participants.find(
-                (p) => p._id !== currentUser?._id
-              );
+          {filteredGroups.length > 0 ? (
+            filteredGroups.map((conv) => {
               const unreadCount =
-                conv.unreadCounts.find(
-                  (u) => u.user === currentUser?._id || u.user?._id === currentUser?._id
+                conv.unreadCounts?.find(
+                  (u) => (u.user?._id || u.user) === currentUser?._id
                 )?.count || 0;
 
               const isActive = activeConversation?._id === conv._id;
@@ -166,34 +222,28 @@ export default function ConversationsList() {
                     {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
                   </div>
 
-                  <ConversationAvatar 
-                    avatar={otherUser?.avatar} 
-                    firstName={otherUser?.firstName} 
-                    lastName={otherUser?.lastName} 
+                  <GroupAvatar 
+                    groupImage={conv.groupImage} 
+                    groupName={conv.groupName} 
                   />
 
                   <div className="chat-review">
                     <div className="chatInfo">
-                      {otherUser?.firstName} {otherUser?.lastName}
-                      <span className="username-tag"> @{otherUser?.username}</span>
+                      {conv.groupName}
+                      <span className="username-tag"> ({conv.participants?.length} members)</span>
                     </div>
 
                     {conv.lastMessage && (
                       <div className="last-message">
                         <span className="last-message-text">
                           <span className="last-message-name">
-                            {conv.lastMessage.sender?._id === currentUser?._id
+                            {(conv.lastMessage.sender?._id || conv.lastMessage.sender) === currentUser?._id
                               ? "You"
-                              : `@${conv.lastMessage.sender?.username}`}:
+                              : `@${conv.lastMessage.sender?.username || "user"}`}:
                           </span>{" "}
                           {conv.lastMessage.text}
                         </span>
                         <span className="last-message-time">
-                          {conv.lastMessage.sender?._id === currentUser?._id && (
-                            <span className="last-message-seen">
-                              {conv.lastMessage.seen ? <FaCheckDouble /> : <FaCheck />}
-                            </span>
-                          )}
                           {new Date(conv.lastMessage.createdAt).toLocaleTimeString([], {
                             hour: "2-digit",
                             minute: "2-digit",
@@ -219,10 +269,18 @@ export default function ConversationsList() {
                       <div className="dropdown-menu conv-dropdown">
                         <button
                           className="conv-dropdown-item"
+                          onClick={(e) => handleViewDetails(e, conv)}
+                        >
+                          <FiInfo />
+                          <span> Group Info</span>
+                        </button>
+
+                        <button
+                          className="conv-dropdown-item"
                           onClick={(e) => handleArchive(e, conv._id)}
                         >
                           <FiArchive />
-                          <span> Archive Chat</span>
+                          <span> Archive Group</span>
                         </button>
                       </div>
                     )}
@@ -231,7 +289,7 @@ export default function ConversationsList() {
               );
             })
           ) : (
-            <div className="no-results">No conversations found</div>
+            <div className="no-results">No groups found</div>
           )}
         </ul>
       </div>
