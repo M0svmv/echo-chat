@@ -656,7 +656,7 @@
   border-radius: var(--border-radius-sm);
   border: 1px solid var(--color-text-disabled);
   background-color: var(--color-input-bg); 
-  color: white;
+  color: var(--color-text-dark);
   outline: none;
 }
 
@@ -712,7 +712,8 @@
   color: var(--color-error);
 }
 
-.edit-profile-navigation-btn{
+.edit-profile-navigation-btn, .btn-basic{
+    box-sizing: border-box;
     
     background: none;
     border: none;
@@ -725,9 +726,14 @@
     align-items: center;
     justify-content: center;
     transition: all  var(--transition-duration) var(--transition-easing);
+    display: flex;
+    align-items: center;
+     gap: 8px;
+      cursor: pointer;
+      width: var(--full-percent);
 }
 
-.edit-profile-navigation-btn:hover{
+.edit-profile-navigation-btn:hover,.btn-basic:hover{
     outline: 1.5px solid var(--color-tertiary);
     color: var(--color-tertiary);
     background: rgba(var(--color-tertiary-rgb), var(--color-bg-opacity))
@@ -736,4 +742,442 @@
 .pg-title{
     padding: var(--regular-padding);
     
+}
+
+.group-details{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: var(--full-percent);
+    overflow-y: auto;
+    color:var(--color-text-light);
+    padding: var(--tiny-padding);
+    
+    
+}
+
+.group-details .group-name{
+    font-size: var(--font-size-larger);
+    font-weight: var(--font-weight-medium);
+    text-align: center;
+    margin-bottom: var(--regular-margin);
+}
+
+.group-details .group-description{
+    font-size: var(--font-size-small);
+    color: var(--color-text-light);
+    font-weight: var(--font-weight-light);
+    text-align: center;
+}
+
+.group-details .group-members-count{
+    font-size: var(--font-size-small);
+    color: var(--color-text-placeholder);
+    font-weight: var(--font-weight-light);
+    text-align: center;
+    margin-bottom:var(--tiny-padding)
+    
+    
+}
+
+.group-description-container{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: var(--full-percent);
+    overflow-y: auto;
+    color:var(--color-text-light);
+    padding: var(--tiny-padding);
+}
+
+.group-members-container{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: var(--full-percent);
+    overflow-y: auto;
+    color:var(--color-text-light);
+    padding: var(--tiny-padding);
+    
+}
+
+.group-members-container h4{
+    font-size: var(--font-size-small);
+    color: var(--color-text-placeholder);
+    font-weight: var(--font-weight-light);
+    align-self: flex-start;
+    margin-bottom: var(--regular-margin);
+}
+
+.group-members{
+    display: flex;
+    flex-direction: column;
+    
+    
+    width: var(--full-percent);
+    max-height:230px ;
+    overflow-y: auto;
+    color:var(--color-text-light);
+    padding: var(--tiny-padding);
+}
+
+.group-form{
+    padding: var(--tiny-padding);
+  display: flex;
+  flex-direction: column;
+  gap: var(--form-gap);
+  width: var(--full-percent);   
+  overflow: hidden !important;
+}
+
+/* الحاوية الرئيسية */
+.admin-checkbox-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: var(--input-gap);
+  justify-self: center;
+  align-self: center;
+
+  
+  padding: var(--small-padding);
+  border-radius: var(--border-radius-sm);
+  
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  width: var(--full-percent);
+}
+
+
+.admin-checkbox-container:hover {
+  outline: var(--border-tertiary);
+  background-color: rgba(var(--color-tertiary-rgb), var(--color-bg-opacity));
+}
+
+
+.custom-checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-tertiary); 
+  cursor: pointer;
+}
+
+
+.checkbox-label {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--small-padding);
+  color: var(--color-text-placeholder);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  user-select: none; 
+}
+
+/* ستايل الأيقونة الافتراضي */
+.admin-icon {
+  font-size: 20px;
+  color: var(--color-text-placeholder);
+  transition: color 0.2s ease;
+}
+
+
+.admin-icon.active {
+  color: var(--color-tertiary);
+}
+
+.member-actions{
+    position: absolute;
+    right:var(--tiny-padding);
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    width: fit-content;
+    overflow-y: auto;
+    color:var(--color-text-light);
+    padding: var(--tiny-padding);
+}
+
+.member-actions-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-trigger-btn {
+  background: none;
+  border: none;
+  color: #64748b;
+  padding: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.dropdown-trigger-btn:hover {
+  background-color: #f1f5f9;
+  color: #1e293b;
+}
+
+.dropdown-menu-box {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 6px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  min-width: 180px;
+  z-index: 999; /* لضمان ظهورها فوق باقي العناصر */
+  overflow: hidden;
+  animation: fadeInDropdown 0.15s ease-out;
+}
+
+.dropdown-item {
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #334155;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.2s ease;
+}
+
+.dropdown-item:hover:not(:disabled) {
+  background-color: #f8f9fa;
+}
+
+.dropdown-item.item-remove {
+  color: #dc3545;
+}
+
+.dropdown-item.item-remove:hover:not(:disabled) {
+  background-color: #fff5f5;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background-color: #e2e8f0;
+  margin: 4px 0;
+}
+
+.dropdown-item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@keyframes fadeInDropdown {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.add-member-inline-btn {
+  background-color: #f1f5f9;
+  color: var(--color-tertiary);
+  border: 1px solid #e2e8f0;
+  padding: 6px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.8s ease;
+  position: absolute;
+  right: 5px;
+}
+
+.add-member-inline-btn:hover:not(:disabled) {
+  background-color: var(--color-tertiary);
+  color: #ffffff;
+  border-color: var(--color-tertiary);
+  box-shadow: 0 2px 5px rgba(59, 130, 246, 0.2);
+}
+
+.add-member-inline-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+
+/* الهيدر الخاص بجروبات الشات */
+.group-chats-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid #e2e8f0; /* خط خفيف يفصل الهيدر عن اللستة */
+  margin-bottom: 10px;
+}
+
+.group-chats-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+/* زرار إنشاء جروب جديد المودرن */
+.create-group-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background-color: #f1f5f9; /* خلفية هادية بدل الأخضر الفاقع */
+  color: #2563eb; /* لون أزرق براند احترافي */
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+/* تأثير الـ Hover */
+.create-group-btn:hover {
+  background-color: #2563eb; /* بيقلب أزرق كامل عند الهوفر */
+  color: #ffffff;
+  border-color: #2563eb;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
+}
+
+/* لو عاوز تخلي الزرار أخضر بس بشكل شيك ومودرن (اختياري) بديل للأزرق: */
+/*
+.create-group-btn {
+  background-color: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #dcfce7;
+}
+.create-group-btn:hover {
+  background-color: #16a34a;
+  color: #ffffff;
+  border-color: #16a34a;
+  box-shadow: 0 2px 6px rgba(22, 163, 74, 0.2);
+}
+*/
+
+
+/* عنوان اختيار الأصدقاء */
+.select-friends-title {
+  padding: 12px 16px 6px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  margin: 0;
+}
+
+/* حاوية قائمة اختيار الأصدقاء لمنع التمدد الطويل */
+.group-members-list {
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+/* عنصر الصديق داخل القائمة */
+.friend-selection-item {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background-color 0.2s ease;
+}
+
+.friend-selection-item:hover {
+  background-color: #f8fafc;
+}
+
+/* عند تحديد الصديق يتغير لون الخلفية بشكل هادئ */
+.friend-selection-item.selectedFriend {
+  background-color: #eff6ff;
+}
+
+.friend-info-block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* مؤشر الاختيار الدائري الاحترافي */
+.circle-checkbox-indicator {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #cbd5e1;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  color: transparent;
+  transition: all 0.2s ease;
+}
+
+.circle-checkbox-indicator.checked {
+  background-color: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+}
+
+/* رسائل الخطأ الخاصة بالفورم */
+.form-error-message {
+  color: #dc2626;
+  background-color: #fef2f2;
+  border: 1px solid #fee2e2;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 12px;
+  margin: 10px 16px;
+  border-radius: 6px;
+  text-align: center;
+}
+
+/* زرار إنشاء الجروب الأساسي في الأسفل */
+.submit-group-btn {
+  width: calc(100% - 32px);
+  margin: 16px auto;
+  display: block;
+  background-color: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.submit-group-btn:hover:not(:disabled) {
+  background-color: #1d4ed8;
+}
+
+.submit-group-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.submit-group-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }

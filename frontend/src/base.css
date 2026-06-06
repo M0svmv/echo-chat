@@ -83,6 +83,7 @@
     --box-shadow: 2px 2px 30px rgba(var(--color-secondary-rgb), 0.25);
 
     --card-padding: 2rem;
+
     --tiny-padding: 4px;
     --x-small-padding: 6px;
     --small-padding: 8px;
@@ -102,6 +103,7 @@
     --msg-gap: 3px;
     --btns-gap:8px;
     --label-gap: 5px;
+    --input-gap: 10px;
     --form-gap: 15px;
 
     --btn-size:30px;

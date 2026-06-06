@@ -69,7 +69,7 @@ export default function Profile() {
           <button 
           className="edit-profile-navigation-btn" 
           onClick={() => navigate("/updateProfile")} 
-          style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
+          style={{  }}
         >
           <FaEdit />
           <span>Edit Profile</span>

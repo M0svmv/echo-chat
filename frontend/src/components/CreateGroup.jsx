@@ -1,10 +1,24 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react"; // 👈 ضفنا memo هنا
 import api from "../api/axios";
 import { useDispatch } from "react-redux";
 import { setActiveConversation } from "../features/chat/chatSlice";
-import {  IoArrowBack } from "react-icons/io5";
+import { IoArrowBack } from "react-icons/io5";
 import { FaCheck } from "react-icons/fa";
-import "../styles/chat.css"; // أو أي ملف ستايل تفضله
+import "../styles/chat.css";
+
+// 👈 مكون الأفتار الذكي لعرض صور المستخدمين أو الحرف الأول
+const MemberAvatar = memo(({ avatar, name }) => {
+  return (
+    <div className="chatAvatar">
+      {avatar ? (
+        <img src={avatar} alt={name} className="avatar" loading="lazy" />
+      ) : (
+        <div className="avatarPlaceholder">{name?.charAt(0).toUpperCase()}</div>
+      )}
+    </div>
+  );
+});
+MemberAvatar.displayName = "MemberAvatar";
 
 export default function CreateGroup({ onBack }) {
   const dispatch = useDispatch();
@@ -14,7 +28,7 @@ export default function CreateGroup({ onBack }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // 1. جلب الأصدقاء من الـ API الخاص بك
+  // 1. جلب الأصدقاء من الـ API
   useEffect(() => {
     const fetchFriends = async () => {
       try {
@@ -43,13 +57,13 @@ export default function CreateGroup({ onBack }) {
     if (!groupName.trim()) return setError("Please enter a group name");
     if (selectedFriends.length === 0) return setError("Please select at least one friend");
 
-    setLoading(false);
+    setLoading(true); 
     setError("");
 
     try {
       const response = await api.post("/chats/group", {
         groupName: groupName.trim(),
-        participants: selectedFriends, // مصفوفة الـ IDs للأصدقاء المحددين
+        participants: selectedFriends,
       });
 
       // جعل الجروب المنشأ حديثاً هو النشط تلقائياً والعودة
@@ -58,13 +72,15 @@ export default function CreateGroup({ onBack }) {
     } catch (err) {
       console.error("Error creating group:", err);
       setError(err.response?.data?.message || "Failed to create group");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="chatsContainer">
       <div className="create-group-header">
-        <button className="back-btn" onClick={onBack}>
+        <button type="button" className="back-btn" onClick={onBack}>
           <IoArrowBack size={20} />
         </button>
         <h3>Create New Group</h3>
@@ -77,14 +93,15 @@ export default function CreateGroup({ onBack }) {
             placeholder="Enter group name..."
             value={groupName}
             onChange={(e) => setGroupName(e.target.value)}
+            required
           />
         </div>
 
-        {error && <div className="error-message" style={{ color: "red", padding: "5px 10px" }}>{error}</div>}
+        {error && <div className="form-error-message">{error}</div>}
 
-        <h4 style={{ padding: "10px 0 5px 10px" }}>Select Friends:</h4>
+        <h4 className="select-friends-title">Select Friends:</h4>
         
-        <div className="chat-items-container" style={{ maxHeight: "300px", overflowY: "auto" }}>
+        <div className="chat-items-container group-members-list">
           {friends.length > 0 ? (
             <ul>
               {friends.map((friend) => {
@@ -92,27 +109,23 @@ export default function CreateGroup({ onBack }) {
                 return (
                   <li
                     key={friend._id}
-                    className={`chatItem ${isChecked ? "selectedFriend" : ""}`}
+                    className={`chatItem friend-selection-item ${isChecked ? "selectedFriend" : ""}`}
                     onClick={() => toggleFriend(friend._id)}
-                    style={{ cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}
                   >
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                      <div className="avatarPlaceholder">
-                        {friend.firstName?.charAt(0).toUpperCase()}
-                        {friend.lastName?.charAt(0).toUpperCase()}
-                      </div>
+                    <div className="friend-info-block">
+                      
+                      {/* 👈 تم استدعاء المكون هنا ليعرض الافتارات بشكل صحيح */}
+                      <MemberAvatar avatar={friend.avatar} name={friend.firstName || "User"} />
+
                       <div className="chatInfo">
                         {friend.firstName} {friend.lastName}
-                        <span className="username-tag"> @{friend.username}</span>
+                        {friend.username && <span className="username-tag"> @{friend.username}</span>}
                       </div>
                     </div>
                     
-                    <div className={`checkbox-indicator ${isChecked ? "checked" : ""}`} style={{
-                      width: "20px", height: "20px", border: "2px solid #ccc", borderRadius: "50%",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      backgroundColor: isChecked ? "#007bff" : "transparent"
-                    }}>
-                      {isChecked && <FaCheck size={10} color="white" />}
+                    {/* مؤشر الاختيار الدائري */}
+                    <div className={`circle-checkbox-indicator ${isChecked ? "checked" : ""}`}>
+                      {isChecked && <FaCheck size={10} />}
                     </div>
                   </li>
                 );
@@ -125,9 +138,8 @@ export default function CreateGroup({ onBack }) {
 
         <button 
           type="submit" 
-          className="searchButton" 
+          className="submit-group-btn" 
           disabled={loading}
-          style={{ width: "90%", margin: "15px auto", display: "block", borderRadius: "8px", padding: "10px", float: "none", background: "#007bff", color: "white" }}
         >
           {loading ? "Creating..." : "Create Group"}
         </button>

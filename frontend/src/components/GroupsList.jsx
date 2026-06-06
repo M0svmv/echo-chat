@@ -191,14 +191,14 @@ export default function GroupsList() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingRight: "10px" }}>
         <h3>Group Chats</h3>
         <button 
-          onClick={() => setIsCreating(true)}
-          style={{
-            display: "flex", alignItems: "center", gap: "5px", padding: "6px 12px",
-            background: "#28a745", color: "white", border: "none", borderRadius: "20px", cursor: "pointer", fontSize: "13px", fontWeight: "bold"
-          }}
-        >
-          <FaPlus size={12} /> New Group
-        </button>
+    type="button"
+    className="create-group-btn"
+    onClick={() => setIsCreating(true)}
+    title="Create New Group"
+  >
+    <FaPlus size={12} />
+    
+  </button>
       </div>
 
       <div className="chat-items-container">

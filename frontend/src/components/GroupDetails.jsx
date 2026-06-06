@@ -1,7 +1,7 @@
 import { useEffect, useState, memo, useRef } from "react";
 import api from "../api/axios";
 import { IoArrowBack as BackIcon } from "react-icons/io5";
-import { FaEdit, FaSave, FaCamera, FaUsers, FaFileAlt, FaUserPlus, FaUserMinus, FaUserShield } from "react-icons/fa";
+import { FaEdit, FaSave, FaCamera, FaUsers, FaFileAlt, FaUserPlus, FaUserMinus, FaUserShield, FaEllipsisV } from "react-icons/fa"; 
 import { MdAdminPanelSettings } from "react-icons/md";
 import "../styles/chat.css";
 
@@ -21,12 +21,14 @@ MemberAvatar.displayName = "MemberAvatar";
 export default function GroupDetails({ group, currentUser, onBack, onGroupUpdated, initialEditMode = false }) {
   const currentUserIdStr = String(currentUser?._id || "");
   const fileInputRef = useRef(null);
+  const dropdownRef = useRef(null); 
 
   const isAdmin = group?.groupAdmin?.some(admin => String(admin._id || admin) === currentUserIdStr);
   const isEditableByEveryone = group?.adminPermission === false;
   const canEdit = isAdmin || isEditableByEveryone;
 
   const [isEditing, setIsEditing] = useState(initialEditMode);
+  const [openDropdownId, setOpenDropdownId] = useState(null); 
 
   const [formData, setFormData] = useState({
     groupName: group?.groupName || "",
@@ -40,6 +42,16 @@ export default function GroupDetails({ group, currentUser, onBack, onGroupUpdate
   const [loading, setLoading] = useState(false);
   const [actionLoadingId, setActionLoadingId] = useState(null); 
   const [message, setMessage] = useState({ type: "", text: "" });
+
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpenDropdownId(null);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
 
   useEffect(() => {
     if (!isEditing || !group?.participants) return;
@@ -124,14 +136,13 @@ export default function GroupDetails({ group, currentUser, onBack, onGroupUpdate
     }
   };
 
-  // 🔴 طرد عضو (تم إرسال targetUserId لتجنب الخطأ)
   const handleRemoveMember = async (memberId) => {
     setActionLoadingId(memberId);
     setMessage({ type: "", text: "" });
     try {
       const res = await api.put(`/chats/group/remove/${group._id}`, { 
         memberId: memberId,
-        memberIdToRemove: memberId // بعتناها بالاسمين لضمان القبول
+        memberIdToRemove: memberId 
       });
       if (onGroupUpdated) onGroupUpdated(res.data);
       setMessage({ type: "success", text: "Member has been removed!" });
@@ -142,14 +153,13 @@ export default function GroupDetails({ group, currentUser, onBack, onGroupUpdate
     }
   };
 
-  // 👑 ترقية لأدمن
   const handlePromoteAdmin = async (memberId) => {
     setActionLoadingId(memberId);
     setMessage({ type: "", text: "" });
     try {
       const res = await api.put(`/chats/group/admin-add/${group._id}`, { 
         adminId: memberId,
-        targetUserId: memberId // بعتناها بالاسمين لضمان القبول
+        targetUserId: memberId 
       });
       if (onGroupUpdated) onGroupUpdated(res.data);
       setMessage({ type: "success", text: "Member promoted to Admin!" });
@@ -160,14 +170,13 @@ export default function GroupDetails({ group, currentUser, onBack, onGroupUpdate
     }
   };
 
-  // 🛡️ سحب رتبة الأدمن
   const handleDemoteAdmin = async (adminId) => {
     setActionLoadingId(adminId);
     setMessage({ type: "", text: "" });
     try {
       const res = await api.put(`/chats/group/admin-remove/${group._id}`, { 
         adminId: adminId,
-        targetUserId: adminId // بعتناها بالاسمين لضمان القبول
+        targetUserId: adminId 
       });
       if (onGroupUpdated) onGroupUpdated(res.data);
       setMessage({ type: "success", text: "Admin privileges revoked!" });
@@ -195,7 +204,7 @@ export default function GroupDetails({ group, currentUser, onBack, onGroupUpdate
           </div>
         )}
 
-        <form onSubmit={handleUpdateGroupInfo} className="profile-form">
+        <form onSubmit={handleUpdateGroupInfo} className="group-form ">
           <div className="avatar-upload-section">
             <div className={`profile-avatar-container ${isEditing ? "editable" : ""}`} onClick={() => isEditing && fileInputRef.current.click()}>
               {previewUrl ? (
@@ -219,20 +228,30 @@ export default function GroupDetails({ group, currentUser, onBack, onGroupUpdate
                 <input type="text" name="groupDescription" value={formData.groupDescription} onChange={handleChange} />
               </div>
               {isAdmin && (
-                <div className="form-group" style={{ flexDirection: "row", alignItems: "center", gap: "10px" }}>
-                  <input type="checkbox" id="adminPermission" name="adminPermission" checked={formData.adminPermission} onChange={handleChange} style={{ width: "auto" }} />
-                  <label htmlFor="adminPermission" style={{ margin: 0, display: "flex", alignItems: "center", gap: "5px" }}><MdAdminPanelSettings size={18} /> Only admins can edit group details</label>
+                <div className="admin-checkbox-container">
+                  <input 
+                    type="checkbox" 
+                    id="adminPermission" 
+                    name="adminPermission" 
+                    checked={formData.adminPermission} 
+                    onChange={handleChange} 
+                    className="custom-checkbox"
+                  />
+                  <label htmlFor="adminPermission" className="checkbox-label">
+                    <MdAdminPanelSettings className={`admin-icon ${formData.adminPermission ? 'active' : ''}`} /> 
+                    <span>Only admins can edit group details</span>
+                  </label>
                 </div>
               )}
-              <button type="submit" className="save-profile-btn" disabled={loading}><FaSave /> Save Group Settings</button>
+              <button type="submit" className="btn-basic" disabled={loading}><FaSave /> Save Group Settings</button>
             </>
           ) : (
-            <div style={{ textAlign: "center", width: "100%" }}>
-              <h2>{group.groupName}</h2>
-              {group.groupDescription && <p style={{ color: "#666", fontStyle: "italic" }}>{group.groupDescription}</p>}
-              <span className="username-tag" style={{ display: "inline-block", marginBottom: "15px" }}>{group.participants?.length} Active Members</span>
+            <div className="group-details">
+              <h2 className="group-name">{group.groupName}</h2>
+              <div className="group-description-container">{group.groupDescription && <p className="group-description">{group.groupDescription}</p> }</div>
+              <span className="group-members-count" >{group.participants?.length + ` `}Members</span>
               {canEdit && (
-                <button type="button" className="save-profile-btn" style={{ background: "#007bff", width: "auto", margin: "10px auto" }} onClick={() => setIsEditing(true)}>
+                <button type="button" className="edit-profile-navigation-btn" disabled={loading} onClick={() => setIsEditing(true)}>
                   <FaEdit /> Edit Group
                 </button>
               )}
@@ -240,37 +259,10 @@ export default function GroupDetails({ group, currentUser, onBack, onGroupUpdate
           )}
         </form>
 
-        {isEditing && (
-          <div style={{ padding: "0 15px", marginTop: "20px" }}>
-            <h4 style={{ marginBottom: "10px" }}>Add New Members:</h4>
-            <div style={{ maxHeight: "150px", overflowY: "auto", border: "1px solid #eee", borderRadius: "8px", padding: "10px", backgroundColor: "#fafafa" }}>
-              {friends.length > 0 ? (
-                friends.map(friend => (
-                  <div key={friend._id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid #f0f0f0" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                      <div className="avatarPlaceholder">{friend.firstName?.charAt(0).toUpperCase()}</div>
-                      <div>{friend.firstName} {friend.lastName}</div>
-                    </div>
-                    <button 
-                      type="button" 
-                      onClick={() => handleAddMember(friend._id)} 
-                      disabled={actionLoadingId === friend._id}
-                      style={{ background: "#28a745", color: "white", border: "none", padding: "5px 12px", borderRadius: "15px", cursor: "pointer", display: "flex", alignItems: "center", gap: "5px", fontSize: "12px" }}
-                    >
-                      <FaUserPlus /> Add
-                    </button>
-                  </div>
-                ))
-              ) : (
-                <div style={{ color: "#888", fontSize: "13px", padding: "5px 0", textAlign: "center" }}>No friends available to add.</div>
-              )}
-            </div>
-          </div>
-        )}
-
-        <div style={{ padding: "0 15px", marginTop: "20px" }}>
-          <h4 style={{ marginBottom: "10px" }}>Current Group Members:</h4>
-          <div className="chat-items-container" style={{ maxHeight: "350px", overflowY: "auto" }}>
+        {/* 1. قائمة أعضاء الجروب الحاليين */}
+        <div className="group-members-container" ref={dropdownRef}>
+          <h4>Current Group Members:</h4>
+          <div className="chat-items-container group-members">
             <ul>
               {group.participants?.map((member) => {
                 const memberIdStr = String(member._id || member);
@@ -282,10 +274,12 @@ export default function GroupDetails({ group, currentUser, onBack, onGroupUpdate
                     <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                       <MemberAvatar avatar={member.avatar} name={member.firstName || "User"} />
                       <div className="chatInfo">
-                        {member.firstName ? `${member.firstName} ${member.lastName}` : "Group Member"}
                         {member.username && <span className="username-tag"> @{member.username}</span>}
+                        <br/>
+                        {member.firstName ? `${member.firstName} ${member.lastName}` : "Group Member"}
+                        <br/>
                         {isMemberAdmin && (
-                          <span style={{ color: "#28a745", fontSize: "11px", marginLeft: "5px", fontWeight: "bold", display: "inline-flex", alignItems: "center", gap: "2px" }}>
+                          <span style={{ color: "#28a745", fontSize: "11px", fontWeight: "bold", display: "inline-flex", alignItems: "center", gap: "2px" }}>
                             <MdAdminPanelSettings /> [Admin]
                           </span>
                         )}
@@ -293,38 +287,62 @@ export default function GroupDetails({ group, currentUser, onBack, onGroupUpdate
                     </div>
 
                     {isEditing && isAdmin && !isSelf && (
-                      <div style={{ display: "flex", gap: "6px" }}>
-                        {isMemberAdmin ? (
-                          <button
-                            type="button"
-                            onClick={() => handleDemoteAdmin(memberIdStr)}
-                            disabled={actionLoadingId === memberIdStr}
-                            title="Revoke Admin privileges"
-                            style={{ background: "#ffc107", border: "none", color: "#000", padding: "6px 10px", borderRadius: "5px", cursor: "pointer", display: "flex", alignItems: "center" }}
-                          >
-                            <FaUserMinus size={12} />
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => handlePromoteAdmin(memberIdStr)}
-                            disabled={actionLoadingId === memberIdStr}
-                            title="Promote to Admin"
-                            style={{ background: "#17a2b8", border: "none", color: "white", padding: "6px 10px", borderRadius: "5px", cursor: "pointer", display: "flex", alignItems: "center" }}
-                          >
-                            <FaUserShield size={12} />
-                          </button>
-                        )}
-
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveMember(memberIdStr)}
-                          disabled={actionLoadingId === memberIdStr}
-                          title="Expel from Group"
-                          style={{ background: "#dc3545", border: "none", color: "white", padding: "6px 10px", borderRadius: "5px", cursor: "pointer", display: "flex", alignItems: "center" }}
+                      <div className="member-actions-dropdown">
+                        <button 
+                          type="button" 
+                          className="dropdown-trigger-btn"
+                          onClick={() => setOpenDropdownId(openDropdownId === memberIdStr ? null : memberIdStr)}
+                          title="Actions"
                         >
-                          <FaUserMinus size={12} />
+                          <FaEllipsisV size={14} />
                         </button>
+
+                        {openDropdownId === memberIdStr && (
+                          <div className="dropdown-menu-box">
+                            {isMemberAdmin ? (
+                              <button
+                                type="button"
+                                className="dropdown-item item-demote"
+                                onClick={() => {
+                                  handleDemoteAdmin(memberIdStr);
+                                  setOpenDropdownId(null);
+                                }}
+                                disabled={actionLoadingId === memberIdStr}
+                              >
+                                <FaUserMinus size={14} />
+                                <span>Revoke Admin</span>
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                className="dropdown-item item-promote"
+                                onClick={() => {
+                                  handlePromoteAdmin(memberIdStr);
+                                  setOpenDropdownId(null);
+                                }}
+                                disabled={actionLoadingId === memberIdStr}
+                              >
+                                <FaUserShield size={14} />
+                                <span>Make Admin</span>
+                              </button>
+                            )}
+
+                            <div className="dropdown-divider"></div>
+
+                            <button
+                              type="button"
+                              className="dropdown-item item-remove"
+                              onClick={() => {
+                                handleRemoveMember(memberIdStr);
+                                setOpenDropdownId(null);
+                              }}
+                              disabled={actionLoadingId === memberIdStr}
+                            >
+                              <FaUserMinus size={14} />
+                              <span>Expel Member</span>
+                            </button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </li>
@@ -334,6 +352,47 @@ export default function GroupDetails({ group, currentUser, onBack, onGroupUpdate
           </div>
         </div>
 
+        {/* 2. قائمة إضافة أعضاء جدد (بنفس استايل وبنية الأعضاء الحاليين) */}
+        {isEditing && (
+          <div className="group-members-container" style={{ marginTop: "20px" }}>
+            <h4>Add New Members:</h4>
+            <div className="chat-items-container group-members" style={{ maxHeight: "250px", overflowY: "auto" }}>
+              <ul>
+                {friends.length > 0 ? (
+                  friends.map(friend => (
+                    <li key={friend._id} className="chatItem" style={{ cursor: "default", justifyContent: "space-between", alignItems: "center", padding: "10px", borderBottom: "1px solid #eee" }}>
+                      
+                      {/* نفس تركيبة الصورة والبيانات الخاصة بأعضاء الجروب */}
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <MemberAvatar avatar={friend.avatar} name={friend.firstName || "User"} />
+                        <div className="chatInfo">
+                          {friend.username && <span className="username-tag"> @{friend.username}</span>}
+                          <br />
+                          {friend.firstName ? `${friend.firstName} ${friend.lastName}` : "Friend"}
+                        </div>
+                      </div>
+
+                      {/* زرار الإضافة المودرن المتناسق */}
+                      <button 
+                        type="button" 
+                        onClick={() => handleAddMember(friend._id)} 
+                        disabled={actionLoadingId === friend._id}
+                        className="add-member-inline-btn"
+                      >
+                        <FaUserPlus size={12} /> 
+                      </button>
+
+                    </li>
+                  ))
+                ) : (
+                  <div style={{ color: "#64748b", fontSize: "13px", padding: "20px 0", textAlign: "center" }}>
+                    No friends available to add.
+                  </div>
+                )}
+              </ul>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
