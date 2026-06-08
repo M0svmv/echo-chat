@@ -11,30 +11,32 @@ exports.getAvailableUsers = async (req, res) => {
     const userId = req.user._id;
     const { query = "" } = req.query;
 
-    // 1. تجيب المحادثات، البلوكات، وطلبات الصداقة المعلقة أو المقبولة
-    const [conversations, preferences, friendRequests] = await Promise.all([
-      Conversation.find({ participants: userId }).select("participants"),
+    // 1. نجيب البلوكات وطلبات الصداقة فقط (قمنا بإزالة الـ Conversation لتسمح بظهور من تبادلت معهم المحادثات)
+    const [preferences, friendRequests] = await Promise.all([
       UserPreference.find({ $or: [{ user: userId }, { targetUser: userId }], type: "block" }),
       FriendRequest.find({ $or: [{ sender: userId }, { receiver: userId }] })
     ]);
 
-    // 2. استخراج كل الـ IDs اللي المفروض متظهرش في البحث
-    const chattedUserIds = conversations.flatMap(conv => 
-      conv.participants.map(id => id.toString()).filter(id => id !== userId.toString())
-    );
-
+    // 2. استخراج المعرفات (IDs) التي يجب حجبها من البحث تماماً
+    
+    // استخراج الأشخاص المحظورين (سواء قمت بحظرهم أو قاموا بحظرك)
     const blockedUserIds = preferences.map(pref => 
       pref.user.toString() === userId.toString() ? pref.targetUser.toString() : pref.user.toString()
     );
 
+    // استخراج الأشخاص الذين بينك وبينهم طلب صداقة (سواء مقبول، معلق، إلخ)
     const relatedUserIds = friendRequests.map(req => 
       req.sender.toString() === userId.toString() ? req.receiver.toString() : req.sender.toString()
     );
 
-    // دمج كل الـ IDs المستبعدة في مصفوفة واحدة بدون تكرار
-    const excludedUserIds = Array.from(new Set([userId.toString(), ...chattedUserIds, ...blockedUserIds, ...relatedUserIds]));
+    // دمج الـ IDs المستبعدة (نفسك + المحظورين + أطراف طلبات الصداقة) في مصفوفة واحدة بدون تكرار
+    const excludedUserIds = Array.from(new Set([
+      userId.toString(), 
+      ...blockedUserIds, 
+      ...relatedUserIds
+    ]));
 
-    // 3. بناء فلتر البحث
+    // 3. بناء فلتر البحث النصي
     const searchFilter = query
       ? {
           $or: [
@@ -45,7 +47,7 @@ exports.getAvailableUsers = async (req, res) => {
         }
       : {};
 
-    // 4. الـ Query النهائي
+    // 4. الـ Query النهائي لجلب المستخدمين المتاحين
     const availableUsers = await User.find({
       _id: { $nin: excludedUserIds },
       ...searchFilter,
@@ -130,20 +132,26 @@ exports.respondToFriendRequest = async (req, res) => {
     await friendRequest.save();
 
     if (action === "accepted") {
-        // التأكد إن مفيش كونفرزيشن قديمة بين الطرفين قبل الكريت
+        // 🔥 التعديل هنا: التأكد تماماً أن الطرفين ليس بينهما محادثة ثنائية (Direct Chat) قائمة
+        // الفلتر يبحث عن محادثة تحتوي على الطرفين فقط (حجم المصفوفة 2) وغير تصنيفها كـ جروب
         const existingChat = await Conversation.findOne({
-          participants: { $all: [friendRequest.sender, friendRequest.receiver] }
+          participants: { $all: [friendRequest.sender, friendRequest.receiver] },
+          $expr: { $eq: [{ $size: "$participants" }, 2] }, // حماية للتأكد أنه شات ثنائي وليس جروب مشتركين فيه
+          isGroup: { $ne: true } // إذا كان موديل الـ Conversation يحتوي على حقل الجروب
         });
         
+        // لو مفيش محادثة ثنائية موجودة نهائياً.. كَريِت واحدة جديدة
         if (!existingChat) {
           await Conversation.create({
-              participants: [friendRequest.sender, friendRequest.receiver]
+              participants: [friendRequest.sender, friendRequest.receiver],
+              isGroup: false
           });
         }
     }
 
     return res.status(200).json(friendRequest);
   } catch (error) {
+    console.error("Error responding to friend request:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -257,23 +265,22 @@ exports.getBlockedUsers = async (req,res)=>{
 }
 
 exports.makePreference = async (req, res) => {
-  const session = await mongoose.startSession();
   try {
     const userId = req.user._id;
-    const { type, targetUserId } = req.body; // تعديل الـ syntax error هنا
+    const { type, targetUserId } = req.body;
     
     let preference = null;
 
-    // التأكد إن الطرفين أصدقاء فعلاً قبل إضافة close_friend
-    const isFriend = await FriendRequest.findOne({
-      $or: [
-        { sender: userId, receiver: targetUserId },
-        { sender: targetUserId, receiver: userId }
-      ],
-      status: "accepted"
-    });
-
+    // 1. حالة الأصدقاء المقربين
     if (type === "close_friend") {
+      const isFriend = await FriendRequest.findOne({
+        $or: [
+          { sender: userId, receiver: targetUserId },
+          { sender: targetUserId, receiver: userId }
+        ],
+        status: "accepted"
+      });
+
       if (!isFriend) {
         return res.status(400).json({ message: "You can only add friends to close friends" });
       }
@@ -285,41 +292,42 @@ exports.makePreference = async (req, res) => {
       );
     }
 
+    // 2. حالة الحظر (Block)
     if (type === "block") {
-      session.startTransaction();
-
-      // لو فيه صداقة أو طلب معلق أو كلوز فريند، يتم مسحهم فوراً
       await Promise.all([
         FriendRequest.findOneAndDelete({
           $or: [{ sender: userId, receiver: targetUserId }, { sender: targetUserId, receiver: userId }]
-        }, { session }),
+        }),
         UserPreference.deleteMany({
           $or: [
             { user: userId, targetUser: targetUserId },
             { user: targetUserId, targetUser: userId }
           ]
-        }, { session })
+        })
       ]);
 
-      // إنشاء علاقة البلوك الجديدة
-      preference = await UserPreference.create([{
+      preference = await UserPreference.findOneAndUpdate(
+        { user: userId, targetUser: targetUserId },
+        { type: "block" },
+        { upsert: true, new: true }
+      );
+    }
+
+    // 🔥 3. حالة إلغاء الحظر المضافة حديثاً (Unblock)
+    if (type === "unblock") {
+      await UserPreference.deleteOne({
         user: userId,
         targetUser: targetUserId,
         type: "block"
-      }], { session });
-
-      await session.commitTransaction();
-      preference = preference[0]; // لأن create مع session بترجع array
+      });
+      
+      return res.status(200).json({ message: "User unblocked successfully" });
     }
      
-    session.endSession();
     return res.status(200).json(preference);
 
   } catch (err) {
-    if (session.inTransaction()) {
-      await session.abortTransaction();
-    }
-    session.endSession();
+    console.error("Error in makePreference:", err);
     return res.status(500).json({ error: err.message || "Internal server error" });
   }
 };

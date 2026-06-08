@@ -13,9 +13,10 @@ import "../styles/messagesList.css";
 
 import { FaSearch, FaCheck, FaCheckDouble, FaVideo } from "react-icons/fa";
 import { FaPhone } from "react-icons/fa6";
-import { FiMoreVertical, FiArchive, FiX } from "react-icons/fi";
+import { FiMoreVertical, FiArchive, FiX, FiInfo, FiLogOut } from "react-icons/fi";
 
 import NotSelectedChat from "./NotSelectedChat";
+import GroupDetails from "./GroupDetails"; // ✅ استيراد موديل تفاصيل الجروب
 
 const ChatAvatar = memo(({ isGroup, groupImage, groupName, avatar, firstName, lastName }) => {
   if (isGroup) {
@@ -69,6 +70,7 @@ export default function MessagesList() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [viewingGroupDetails, setViewingGroupDetails] = useState(null); // ✅ حالة عرض تفاصيل الجروب من الداخل
 
   const filteredMessages = messages.filter((msg) =>
     msg.text?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -78,6 +80,7 @@ export default function MessagesList() {
 
   const isArchived = active?.archivedBy?.includes(currentUser?._id);
 
+  // إغلاق القائمة المنسدلة عند الضغط في أي مكان خارجي
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -124,9 +127,9 @@ export default function MessagesList() {
 
     socket.emit("markAsSeen", {
       conversationId: active._id,
-      userId: currentUser._id,
+      userId: currentUser?._id,
     });
-  }, [active?._id, currentUser._id]);
+  }, [active?._id, currentUser?._id]);
 
   useEffect(() => {
     if (!active) return;
@@ -136,13 +139,13 @@ export default function MessagesList() {
         dispatch(addMessage(msg));
         socket.emit("markAsSeen", {
           conversationId: active._id,
-          userId: currentUser._id,
+          userId: currentUser?._id,
         });
       }
     });
 
     return () => socket.off("newMessage");
-  }, [active?._id, currentUser._id, dispatch]);
+  }, [active?._id, currentUser?._id, dispatch]);
 
   useEffect(() => {
     socket.on("messagesSeen", (data) => {
@@ -180,17 +183,48 @@ export default function MessagesList() {
   useEffect(() => {
     setShowSearch(false);
     setSearchQuery("");
+    setViewingGroupDetails(null); // ريست للتفاصيل عند الانتقال لشات آخر
   }, [active?._id]);
 
   const handleArchive = () => {
     socket.emit("archiveConversation", {
       conversationId: active._id,
-      userId: currentUser._id,
+      userId: currentUser?._id,
     });
     setShowDropdown(false);
   };
 
+  // ✅ دالة الخروج من الجروب من داخل الشات المفتوح
+  const handleLeaveGroup = async () => {
+    const confirmLeave = window.confirm("Are you sure you want to leave this group?");
+    if (!confirmLeave) return;
+
+    try {
+      await api.put(`/chats/group/leave/${active._id}`);
+      dispatch(removeConversation(active._id)); // إغلاق الشات فوراً وحذفه من الريدكس
+      setShowDropdown(false);
+    } catch (error) {
+      console.error("Failed to leave group from chat view:", error);
+      alert(error.response?.data?.message || "Could not leave group.");
+    }
+  };
+
   if (!active) return <NotSelectedChat />;
+
+  // ✅ عرض صفحة تفاصيل الجروب إذا تم تفعيلها من القائمة
+  if (viewingGroupDetails) {
+    return (
+      <GroupDetails 
+        group={active} 
+        currentUser={currentUser}
+        onBack={() => setViewingGroupDetails(false)} 
+        onGroupUpdated={(updatedGroup) => {
+          // يمكن تفعيل التحديث عبر الريدكس أو الـ Socket المربوط مسبقاً بالشاشة الرئيسية
+          setViewingGroupDetails(false);
+        }}
+      />
+    );
+  }
 
   return (
     <div className="chatContainer">
@@ -240,10 +274,33 @@ export default function MessagesList() {
 
             {showDropdown && (
               <div className="dropdown-menu chat-more-options">
+                
+                {/* ✅ خيار معلومات الجروب - يظهر فقط للجروبات */}
+                {active.isGroup && (
+                  <button className="dropdown-item" onClick={() => { setViewingGroupDetails(true); setShowDropdown(false); }}>
+                    <FiInfo />
+                    <span>Group Info</span>
+                  </button>
+                )}
+
+                {/* خيار الأرشفة الديناميكي */}
                 <button className="dropdown-item" onClick={handleArchive}>
                   <FiArchive />
-                  <span>{isArchived ? "Unarchive Chat" : "Archive Chat"}</span>
+                  <span>
+                    {isArchived 
+                      ? (active.isGroup ? "Unarchive Group" : "Unarchive Chat") 
+                      : (active.isGroup ? "Archive Group" : "Archive Chat")}
+                  </span>
                 </button>
+
+                {/* ✅ خيار مغادرة الجروب - يظهر فقط للجروبات باللون الأحمر */}
+                {active.isGroup && (
+                  <button className="dropdown-item" onClick={handleLeaveGroup} style={{ color: "#dc3545" }}>
+                    <FiLogOut />
+                    <span>Leave Group</span>
+                  </button>
+                )}
+
               </div>
             )}
           </div>

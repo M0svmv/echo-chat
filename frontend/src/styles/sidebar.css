@@ -216,6 +216,9 @@
     width: var(--full-percent);
     height: var(--full-percent);
     overflow-y:auto;
+    overflow-x:hidden;
+    padding: var(--tiny-padding);
+    
     
 }
 
@@ -1142,7 +1145,7 @@
 
 /* رسائل الخطأ الخاصة بالفورم */
 .form-error-message {
-  color: #dc2626;
+  color: var(--color-error);
   background-color: #fef2f2;
   border: 1px solid #fee2e2;
   font-size: 13px;

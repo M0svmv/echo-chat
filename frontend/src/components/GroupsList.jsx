@@ -9,7 +9,7 @@ import socket from "../socket/socket";
 
 import { FaSearch, FaPlus } from "react-icons/fa";
 import { IoCloseCircle } from "react-icons/io5";
-import { FiMoreVertical, FiArchive, FiInfo } from "react-icons/fi";
+import { FiMoreVertical, FiArchive, FiInfo, FiLogOut } from "react-icons/fi";
 
 import CreateGroup from "./CreateGroup";
 import GroupDetails from "./GroupDetails";
@@ -70,7 +70,7 @@ export default function GroupsList() {
     e.stopPropagation();
     socket.emit("archiveConversation", {
       conversationId,
-      userId: currentUser._id,
+      userId: currentUser?._id,
     });
     setOpenMenuId(null);
   };
@@ -79,6 +79,37 @@ export default function GroupsList() {
     e.stopPropagation();
     setSelectedGroupDetails(group);
     setOpenMenuId(null);
+  };
+
+  // ✅ دالة مغادرة المجموعة المضافة حديثاً
+  const handleLeaveGroup = async (e, conversationId) => {
+    e.stopPropagation();
+    
+    const confirmLeave = window.confirm("Are you sure you want to leave this group?");
+    if (!confirmLeave) return;
+
+    try {
+      // استدعاء الـ Endpoint الخاص بالمغادرة الذي أرفقته
+      await api.put(`/chats/group/leave/${conversationId}`);
+      
+      // تحديث الحالة المحلية بحذف المجموعة التي غادرها المستخدم
+      setLocalGroups((prevGroups) => prevGroups.filter((g) => g._id !== conversationId));
+      
+      // إذا كانت المجموعة المغادَرة هي الشات المفتوح حالياً، قم بإغلاقه
+      if (activeConversation?._id === conversationId) {
+        dispatch(removeConversation(conversationId));
+      }
+      
+      // إذا كان المستخدم يفتح تفاصيل المجموعة حالياً، قم بإغلاقها
+      if (selectedGroupDetails?._id === conversationId) {
+        setSelectedGroupDetails(null);
+      }
+      
+      setOpenMenuId(null);
+    } catch (error) {
+      console.error("Failed to leave group:", error);
+      alert(error.response?.data?.message || "Something went wrong. Could not leave group.");
+    }
   };
 
   useEffect(() => {
@@ -144,6 +175,11 @@ export default function GroupsList() {
   }, [dispatch, activeConversation?._id, selectedGroupDetails?._id]);
 
   const filteredGroups = localGroups.filter((conv) => {
+    const currentUserIdStr = String(currentUser?._id || "");
+    const isArchivedByMe = conv.archivedBy?.some(id => String(id._id || id) === currentUserIdStr);
+    
+    if (isArchivedByMe) return false;
+
     if (!activeSearch) return true;
     const groupName = conv.groupName?.toLowerCase() || "";
     const query = activeSearch.toLowerCase();
@@ -191,14 +227,13 @@ export default function GroupsList() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingRight: "10px" }}>
         <h3>Group Chats</h3>
         <button 
-    type="button"
-    className="create-group-btn"
-    onClick={() => setIsCreating(true)}
-    title="Create New Group"
-  >
-    <FaPlus size={12} />
-    
-  </button>
+          type="button"
+          className="create-group-btn"
+          onClick={() => setIsCreating(true)}
+          title="Create New Group"
+        >
+          <FaPlus size={12} />
+        </button>
       </div>
 
       <div className="chat-items-container">
@@ -281,6 +316,16 @@ export default function GroupsList() {
                         >
                           <FiArchive />
                           <span> Archive Group</span>
+                        </button>
+
+                        {/* ✅ زر مغادرة المجموعة المضاف */}
+                        <button
+                          className="conv-dropdown-item leave-group-item"
+                          onClick={(e) => handleLeaveGroup(e, conv._id)}
+                          style={{ color: "#dc3545" }} 
+                        >
+                          <FiLogOut />
+                          <span> Leave Group</span>
                         </button>
                       </div>
                     )}

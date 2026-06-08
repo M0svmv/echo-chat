@@ -9,7 +9,7 @@ import {
 } from "../features/chat/chatSlice";
 import socket from "../socket/socket";
 
-import { FaSearch, FaCheck, FaCheckDouble } from "react-icons/fa";
+import { FaSearch, FaCheck, FaCheckDouble, FaStar, FaBan, FaUserMinus, FaUserPlus, FaUserTimes, FaUnlock, FaUserCheck } from "react-icons/fa";
 import { IoCloseCircle } from "react-icons/io5";
 import { FiMoreVertical, FiArchive } from "react-icons/fi";
 
@@ -41,9 +41,18 @@ ConversationAvatar.displayName = "ConversationAvatar";
 
 export default function ConversationsList() {
   const dispatch = useDispatch();
-  const conversations = useSelector((state) => state.chat.conversations);
+  const conversations = useSelector((state) => state.chat.conversations || []);
   const currentUser = useSelector((state) => state.auth.user);
   const activeConversation = useSelector((state) => state.chat.activeConversation);
+  
+  const friends = useSelector((state) => state.chat.friends || []);
+
+  const [pendingRequests, setPendingRequests] = useState([]);
+  // 1️⃣ حالة محلية لتخزين طلبات الصداقة الواردة (من الآخرين إليك)
+  const [receivedRequests, setReceivedRequests] = useState([]);
+  const [localFriends, setLocalFriends] = useState([]);
+  const [blockedUsers, setBlockedUsers] = useState([]);
+  const [closeFriends, setCloseFriends] = useState([]);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSearch, setActiveSearch] = useState("");
@@ -67,6 +76,147 @@ export default function ConversationsList() {
     setOpenMenuId(null);
   };
 
+  const handleMakePreference = async (e, otherUser, type, conversationId) => {
+    e.stopPropagation();
+    if (!otherUser) return;
+
+    if (type === "block" && !window.confirm(`Are you sure you want to block ${otherUser.firstName}?`)) return;
+
+    try {
+      await api.post("/friends/preference", { type, targetUserId: otherUser._id });
+      
+      if (type === "block") {
+        setBlockedUsers((prev) => [...prev, otherUser._id.toString()]);
+        setCloseFriends((prev) => prev.filter((id) => id !== otherUser._id.toString()));
+        alert("User blocked successfully");
+      } else if (type === "close_friend") {
+        setCloseFriends((prev) => [...prev, otherUser._id.toString()]);
+        alert("Added to close friends");
+      }
+      setOpenMenuId(null);
+    } catch (err) {
+      console.error(`Failed to perform preference action (${type}):`, err);
+      alert(err.response?.data?.message || "Action failed");
+    }
+  };
+
+  const handleUnblockUser = async (e, otherUser) => {
+    e.stopPropagation();
+    if (!otherUser) return;
+
+    try {
+      await api.post("/friends/preference", { type: "unblock", targetUserId: otherUser._id });
+      setBlockedUsers((prev) => prev.filter((id) => id !== otherUser._id.toString()));
+      alert(`${otherUser.firstName} has been unblocked successfully.`);
+      setOpenMenuId(null);
+    } catch (err) {
+      console.error("Failed to unblock user:", err);
+      alert(err.response?.data?.message || "Could not unblock user.");
+    }
+  };
+
+  const handleRemoveFriend = async (e, otherUser) => {
+    e.stopPropagation();
+    if (!otherUser) return;
+    
+    if (!window.confirm(`Are you sure you want to remove ${otherUser.firstName} from your friends?`)) return;
+
+    try {
+      await api.delete("/friends/remove", { data: { friendId: otherUser._id } });
+      setLocalFriends((prev) => prev.filter((f) => {
+        const friendId = f.targetUser?._id || f._id || f;
+        return friendId.toString() !== otherUser._id.toString();
+      }));
+      setCloseFriends((prev) => prev.filter((id) => id !== otherUser._id.toString()));
+      alert("Friend removed successfully");
+      setOpenMenuId(null);
+    } catch (err) {
+      console.error("Failed to remove friend:", err);
+      alert(err.response?.data?.message || "Action failed");
+    }
+  };
+
+  const handleAddFriend = async (e, otherUser) => {
+    e.stopPropagation();
+    if (!otherUser || !currentUser) return;
+
+    try {
+      const res = await api.post(`/friends/request/`, { receiverId: otherUser._id });
+      const newRequest = res.data?.request || res.data || {};
+      
+      const fallbackRequest = {
+        _id: newRequest._id || Date.now().toString(),
+        sender: newRequest.sender?._id || newRequest.sender || currentUser._id,
+        receiver: newRequest.receiver?._id || newRequest.receiver || otherUser._id,
+        status: "pending"
+      };
+
+      setPendingRequests((prev) => [...prev, fallbackRequest]);
+      alert(`Friend request sent to ${otherUser.firstName}!`);
+      setOpenMenuId(null);
+    } catch (err) {
+      console.error("Failed to send friend request:", err);
+      alert(err.response?.data?.message || "Could not send friend request.");
+    }
+  };
+
+  const handleCancelRequest = async (e, otherUser, requestId) => {
+    e.stopPropagation();
+    if (!requestId) {
+      alert("Request ID not found. Try refreshing the page.");
+      return;
+    }
+
+    try {
+      await api.delete(`/friends/request/delete/${requestId}`);
+      setPendingRequests((prev) => prev.filter((req) => req._id !== requestId));
+      alert("Friend request cancelled.");
+      setOpenMenuId(null);
+    } catch (err) {
+      console.error("Failed to cancel friend request:", err);
+      alert(err.response?.data?.message || "Could not cancel friend request.");
+    }
+  };
+
+  // 2️⃣ دالة قبول طلب الصداقة الوارد من القائمة مباشرة
+  const handleAcceptRequest = async (e, otherUser, requestId) => {
+    e.stopPropagation();
+    if (!requestId) return;
+
+    try {
+      // قم بتحديث الـ Route بناءً على السيرفر عندك (غالباً يكون /friends/request/accept/:id)
+      await api.post(`/friends/request/respond/${requestId}`,{action: "accepted"});
+      
+      // نقله إلى قائمة الأصدقاء محلياً وحذفه من الطلبات الواردة فوراً
+      setLocalFriends((prev) => [...prev, otherUser]);
+      setReceivedRequests((prev) => prev.filter((req) => req._id !== requestId));
+      
+      alert(`You are now friends with ${otherUser.firstName}!`);
+      setOpenMenuId(null);
+    } catch (err) {
+      console.error("Failed to accept friend request:", err);
+      alert(err.response?.data?.message || "Could not accept request.");
+    }
+  };
+
+  // 3️⃣ دالة رفض/حذف طلب الصداقة الوارد
+  const handleRejectRequest = async (e, requestId) => {
+    e.stopPropagation();
+    if (!requestId) return;
+
+    try {
+      // غالباً مسار حذف الطلب أو رفضه هو نفسه مسار الـ deleteRequest عندك
+      await api.post(`/friends/request/respond/${requestId}`,{action: "rejected"});
+      setReceivedRequests((prev) => prev.filter((req) => req._id !== requestId));
+      
+      alert("Friend request declined.");
+      setOpenMenuId(null);
+    } catch (err) {
+      console.error("Failed to decline friend request:", err);
+      alert(err.response?.data?.message || "Could not decline request.");
+    }
+  };
+
   const toggleMenu = (e, convId) => {
     e.stopPropagation();
     setOpenMenuId((prev) => (prev === convId ? null : convId));
@@ -82,27 +232,41 @@ export default function ConversationsList() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const filteredConversations = conversations.filter((conv) => {
-    if (conv.isGroup) return false;
-    if (!activeSearch) return true;
-    
-    const otherUser = conv.participants.find((p) => p._id !== currentUser?._id);
-    const fullName = `${otherUser?.firstName} ${otherUser?.lastName}`.toLowerCase();
-    const username = otherUser?.username?.toLowerCase() || "";
-    const query = activeSearch.toLowerCase();
-    return fullName.includes(query) || username.includes(query);
-  });
-
   useEffect(() => {
-    const fetchConversations = async () => {
+    const fetchInitialData = async () => {
       try {
-        const res = await api.get("/chats");
-        dispatch(setConversations(res.data));
+        const chatsRes = await api.get("/chats");
+        dispatch(setConversations(chatsRes.data || []));
       } catch (error) {
         console.error("Failed to fetch conversations:", error);
       }
+
+      try {
+        // 4️⃣ جلب طلبات الصداقة الواردة (received) بالتوازي مع باقي البيانات
+        const [requestsRes, receivedRes, friendsRes, blockedRes, closeFriendsRes] = await Promise.all([
+          api.get("/friends/requests/sent").catch(() => ({ data: [] })),
+          api.get("/friends/requests").catch(() => ({ data: [] })), // جلب الطلبات الواردة
+          api.get("/friends/all").catch(() => ({ data: [] })),
+          api.get("/friends/blocked").catch(() => ({ data: [] })),
+          api.get("/friends/close").catch(() => ({ data: [] }))
+        ]);
+
+        const incomingSent = Array.isArray(requestsRes.data) ? requestsRes.data : requestsRes.data?.requests || [];
+        const incomingReceived = Array.isArray(receivedRes.data) ? receivedRes.data : receivedRes.data?.requests || [];
+
+        setPendingRequests(incomingSent);
+        setReceivedRequests(incomingReceived);
+        setLocalFriends(friendsRes.data || []);
+        
+        setBlockedUsers((blockedRes.data || []).map(u => (u.targetUser?._id || u._id || u).toString()));
+        setCloseFriends((closeFriendsRes.data || []).map(u => (u.targetUser?._id || u._id || u).toString()));
+        
+      } catch (error) {
+        console.error("Failed to fetch friends data secondary fields:", error);
+      }
     };
-    fetchConversations();
+
+    fetchInitialData();
   }, [dispatch]);
 
   useEffect(() => {
@@ -120,6 +284,17 @@ export default function ConversationsList() {
     });
     return () => socket.off("conversationArchived");
   }, [dispatch]);
+
+  const filteredConversations = conversations.filter((conv) => {
+    if (conv.isGroup) return false;
+    if (!activeSearch) return true;
+    
+    const otherUser = conv.participants.find((p) => p._id !== currentUser?._id);
+    const fullName = `${otherUser?.firstName} ${otherUser?.lastName}`.toLowerCase();
+    const username = otherUser?.username?.toLowerCase() || "";
+    const query = activeSearch.toLowerCase();
+    return fullName.includes(query) || username.includes(query);
+  });
 
   return (
     <div className="chatsContainer">
@@ -149,12 +324,39 @@ export default function ConversationsList() {
               const otherUser = conv.participants.find(
                 (p) => p._id !== currentUser?._id
               );
+              
+              if (!otherUser || !currentUser) return null;
+
               const unreadCount =
                 conv.unreadCounts.find(
-                  (u) => u.user === currentUser?._id || u.user?._id === currentUser?._id
+                  (u) => (u.user?._id || u.user) === currentUser._id
                 )?.count || 0;
 
               const isActive = activeConversation?._id === conv._id;
+
+              // فحص الصداقة
+              const currentFriendsList = friends.length > 0 ? friends : localFriends;
+              const isAlreadyFriend = currentFriendsList.some((f) => {
+                const friendId = (f.targetUser?._id || f._id || f).toString();
+                return friendId === otherUser._id.toString();
+              });
+
+              // فحص الطلب المرسل منك (Sent Request)
+              const sentRequest = pendingRequests.find((req) => {
+                const reqSenderId = (req.sender?._id || req.sender || "").toString();
+                const reqReceiverId = (req.receiver?._id || req.receiver || "").toString();
+                return reqSenderId === currentUser._id.toString() && reqReceiverId === otherUser._id.toString();
+              });
+
+              // 5️⃣ فحص هل هذا الشخص باعتلك هو ريكويست؟ (Incoming Request)
+              const incomingRequest = receivedRequests.find((req) => {
+                const reqSenderId = (req.sender?._id || req.sender || "").toString();
+                const reqReceiverId = (req.receiver?._id || req.receiver || "").toString();
+                return reqSenderId === otherUser._id.toString() && reqReceiverId === currentUser._id.toString();
+              });
+
+              const isBlocked = blockedUsers.includes(otherUser._id.toString());
+              const isCloseFriend = closeFriends.includes(otherUser._id.toString());
 
               return (
                 <li
@@ -173,8 +375,16 @@ export default function ConversationsList() {
                   />
 
                   <div className="chat-review">
-                    <div className="chatInfo">
+                    <div className="chatInfo" style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
                       {otherUser?.firstName} {otherUser?.lastName}
+                      
+                      {isCloseFriend && (
+                        <FaStar style={{ color: "#ffc107", fontSize: "0.85rem" }} title="Close Friend" />
+                      )}
+
+                      
+                
+                      
                       <span className="username-tag"> @{otherUser?.username}</span>
                     </div>
 
@@ -182,14 +392,14 @@ export default function ConversationsList() {
                       <div className="last-message">
                         <span className="last-message-text">
                           <span className="last-message-name">
-                            {conv.lastMessage.sender?._id === currentUser?._id
+                            {(conv.lastMessage.sender?._id || conv.lastMessage.sender) === currentUser._id
                               ? "You"
                               : `@${conv.lastMessage.sender?.username}`}:
                           </span>{" "}
                           {conv.lastMessage.text}
                         </span>
                         <span className="last-message-time">
-                          {conv.lastMessage.sender?._id === currentUser?._id && (
+                          {(conv.lastMessage.sender?._id || conv.lastMessage.sender) === currentUser._id && (
                             <span className="last-message-seen">
                               {conv.lastMessage.seen ? <FaCheckDouble /> : <FaCheck />}
                             </span>
@@ -224,6 +434,92 @@ export default function ConversationsList() {
                           <FiArchive />
                           <span> Archive Chat</span>
                         </button>
+
+                        {/* 7️⃣ التحكم الذكي بالخيارات بناءً على حالة الطلبات الصادرة والواردة */}
+                        {!isAlreadyFriend ? (
+                          incomingRequest ? (
+                            /* لو الشخص هو اللي باعتلك الطلب، يظهر خيار القبول والرفض علطول */
+                            <>
+                              <button
+                                className="conv-dropdown-item"
+                                onClick={(e) => handleAcceptRequest(e, otherUser, incomingRequest._id)}
+                                style={{ color: "#28a745" }}
+                              >
+                                <FaUserCheck />
+                                <span> Accept Request</span>
+                              </button>
+                              <button
+                                className="conv-dropdown-item"
+                                onClick={(e) => handleRejectRequest(e, incomingRequest._id)}
+                                style={{ color: "#dc3545" }}
+                              >
+                                <FaUserTimes />
+                                <span> Decline Request</span>
+                              </button>
+                            </>
+                          ) : sentRequest ? (
+                            <button
+                              className="conv-dropdown-item"
+                              onClick={(e) => handleCancelRequest(e, otherUser, sentRequest._id)}
+                              style={{ color: "#e0a800" }}
+                            >
+                              <FaUserTimes />
+                              <span> Cancel Request</span>
+                            </button>
+                          ) : (
+                            !isBlocked && (
+                              <button
+                                className="conv-dropdown-item"
+                                onClick={(e) => handleAddFriend(e, otherUser)}
+                                style={{ color: "#007bff" }}
+                              >
+                                <FaUserPlus />
+                                <span> Add Friend</span>
+                              </button>
+                            )
+                          )
+                        ) : (
+                          <>
+                            {!isCloseFriend && (
+                              <button
+                                className="conv-dropdown-item"
+                                onClick={(e) => handleMakePreference(e, otherUser, "close_friend", conv._id)}
+                              >
+                                <FaStar style={{ color: "#ffc107" }} />
+                                <span> Close Friend</span>
+                              </button>
+                            )}
+
+                            <button
+                              className="conv-dropdown-item"
+                              onClick={(e) => handleRemoveFriend(e, otherUser)}
+                              style={{ color: "#dc3545" }}
+                            >
+                              <FaUserMinus />
+                              <span> Remove Friend</span>
+                            </button>
+                          </>
+                        )}
+
+                        {isBlocked ? (
+                          <button
+                            className="conv-dropdown-item"
+                            onClick={(e) => handleUnblockUser(e, otherUser)}
+                            style={{ color: "#28a745" }}
+                          >
+                            <FaUnlock />
+                            <span> Unblock User</span>
+                          </button>
+                        ) : (
+                          <button
+                            className="conv-dropdown-item"
+                            onClick={(e) => handleMakePreference(e, otherUser, "block", conv._id)}
+                            style={{ color: "#dc3545" }}
+                          >
+                            <FaBan />
+                            <span> Block User</span>
+                          </button>
+                        )}
                       </div>
                     )}
                   </div>

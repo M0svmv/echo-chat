@@ -9,7 +9,7 @@ import {
 } from "../features/chat/chatSlice";
 import socket from "../socket/socket";
 
-import { FaSearch, FaCheck, FaCheckDouble } from "react-icons/fa";
+import { FaSearch, FaCheck, FaCheckDouble, FaUsers } from "react-icons/fa";
 import { IoCloseCircle } from "react-icons/io5";
 import { FiMoreVertical, FiArchive } from "react-icons/fi";
 
@@ -37,7 +37,7 @@ export default function ArchiveChats() {
     e.stopPropagation();
     socket.emit("archiveConversation", {
       conversationId,
-      userId: currentUser._id,
+      userId: currentUser?._id,
     });
     setOpenMenuId(null);
   };
@@ -47,7 +47,7 @@ export default function ArchiveChats() {
     setOpenMenuId((prev) => (prev === convId ? null : convId));
   };
 
-  // ✅ اقفل الـ menu لو دوس برا
+  // إغلاق القائمة عند الضغط خارجها
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -58,13 +58,19 @@ export default function ArchiveChats() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // الفلترة الذكية تدعم البحث باسم الشخص أو اسم الجروب
   const filteredConversations = conversations.filter((conv) => {
     if (!activeSearch) return true;
-    const otherUser = conv.participants.find((p) => p._id !== currentUser?._id);
-    const fullName = `${otherUser?.firstName} ${otherUser?.lastName}`.toLowerCase();
-    const username = otherUser?.username?.toLowerCase() || "";
     const query = activeSearch.toLowerCase();
-    return fullName.includes(query) || username.includes(query);
+
+    if (conv.isGroup) {
+      return conv.groupName?.toLowerCase().includes(query);
+    } else {
+      const otherUser = conv.participants?.find((p) => (p._id || p) !== currentUser?._id);
+      const fullName = `${otherUser?.firstName || ""} ${otherUser?.lastName || ""}`.toLowerCase();
+      const username = otherUser?.username?.toLowerCase() || "";
+      return fullName.includes(query) || username.includes(query);
+    }
   });
 
   useEffect(() => {
@@ -100,7 +106,7 @@ export default function ArchiveChats() {
       <div className="searchBar">
         <input
           type="text"
-          placeholder="Search..."
+          placeholder="Search archived chats..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") handleSearch(); }}
@@ -115,18 +121,22 @@ export default function ArchiveChats() {
         </button>
       </div>
 
-      <h3>Chats</h3>
+      <h3>Archived Chats</h3>
       <div className="chat-items-container">
         <ul>
           {filteredConversations.length > 0 ? (
             filteredConversations.map((conv) => {
-              const otherUser = conv.participants.find(
-                (p) => p._id !== currentUser?._id
-              );
-              const unreadCount =
-                conv.unreadCounts.find(
-                  (u) => u.user === currentUser?._id || u.user?._id === currentUser?._id
-                )?.count || 0;
+              // تحديد بيانات العرض بناءً على نوع المحادثة (شخصية أم جروب)
+              const isGroup = conv.isGroup;
+              const otherUser = !isGroup ? conv.participants?.find((p) => (p._id || p) !== currentUser?._id) : null;
+              
+              const chatTitle = isGroup ? conv.groupName : `${otherUser?.firstName || ""} ${otherUser?.lastName || ""}`;
+              const chatAvatar = isGroup ? conv.groupImage : otherUser?.avatar;
+              const avatarLetter = isGroup ? conv.groupName?.charAt(0).toUpperCase() : otherUser?.firstName?.charAt(0).toUpperCase();
+
+              const unreadCount = conv.unreadCounts?.find(
+                (u) => (u.user?._id || u.user) === currentUser?._id
+              )?.count || 0;
 
               return (
                 <li
@@ -138,16 +148,16 @@ export default function ArchiveChats() {
                     {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
                   </div>
 
-                  <div className={otherUser?.avatar ? "chatAvatar avatar-bg" : "chatAvatar"}>
-                    {!otherUser?.avatar ? (
+                  {/* رندرة الآفاتار بحسب الحالة */}
+                  <div className={chatAvatar ? "chatAvatar avatar-bg" : "chatAvatar"}>
+                    {!chatAvatar ? (
                       <div className="avatarPlaceholder">
-                        {otherUser?.firstName?.charAt(0).toUpperCase()}
-                        {otherUser?.lastName?.charAt(0).toUpperCase()}
+                        {isGroup ? <FaUsers size={16} /> : avatarLetter}
                       </div>
                     ) : (
                       <img
-                        src={otherUser.avatar}
-                        alt={`${otherUser.firstName} ${otherUser.lastName}`}
+                        src={chatAvatar}
+                        alt={chatTitle}
                         className="avatar"
                       />
                     )}
@@ -155,22 +165,29 @@ export default function ArchiveChats() {
 
                   <div className="chat-review">
                     <div className="chatInfo">
-                      {otherUser?.firstName} {otherUser?.lastName}
-                      <span className="username-tag"> @{otherUser?.username}</span>
+                      {chatTitle}
+                      {!isGroup && otherUser?.username && (
+                        <span className="username-tag"> @{otherUser.username}</span>
+                      )}
+                      {isGroup && (
+                        <span className="username-tag" style={{ background: "#e0e0e0", padding: "2px 6px", borderRadius: "10px", fontSize: "10px" }}>
+                          Group
+                        </span>
+                      )}
                     </div>
 
                     {conv.lastMessage && (
                       <div className="last-message">
                         <span className="last-message-text">
                           <span className="last-message-name">
-                            {conv.lastMessage.sender?._id === currentUser?._id
+                            {String(conv.lastMessage.sender?._id || conv.lastMessage.sender) === String(currentUser?._id)
                               ? "You"
-                              : `@${conv.lastMessage.sender?.username}`}:
+                              : conv.lastMessage.sender?.firstName || `@${conv.lastMessage.sender?.username || "user"}`}:
                           </span>{" "}
                           {conv.lastMessage.text}
                         </span>
                         <span className="last-message-time">
-                          {conv.lastMessage.sender?._id === currentUser?._id && (
+                          {String(conv.lastMessage.sender?._id || conv.lastMessage.sender) === String(currentUser?._id) && (
                             <span className="last-message-seen">
                               {conv.lastMessage.seen ? <FaCheckDouble /> : <FaCheck />}
                             </span>
@@ -184,10 +201,10 @@ export default function ArchiveChats() {
                     )}
                   </div>
 
-                  {/* ✅ More menu */}
+                  {/* الـ Dropdown Menu المصلح برمجياً لـ ESLint */}
                   <div
                     className="conv-more-options"
-                    ref={openMenuId === conv._id ? menuRef : menuRef}
+                    ref={openMenuId === conv._id ? menuRef : null}
                   >
                     <button
                       className="conv-more-btn"

@@ -183,7 +183,7 @@ export default function UpdateProfile() {
             />
           </div>
           {/* زر الحفظ */}
-          <button type="submit" className="save-profile-btn" disabled={loading}>
+          <button type="submit" className="save-profile-btn btn-basic" disabled={loading}>
             <FaSave /> {loading ? "Saving Changes..." : "Save Changes"}
           </button>
         </form>
