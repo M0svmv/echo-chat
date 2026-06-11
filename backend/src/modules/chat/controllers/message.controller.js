@@ -11,20 +11,39 @@ exports.sendMessage = async (req, res) => {
     const { conversationId, text } = req.body;
 
     if (!conversationId) return res.status(400).json({ message: "Conversation ID is required" });
-    if (!text) return res.status(400).json({ message: "Message cannot be empty" });
 
+    // === [هندسة المرفقات من الميدل وير] ===
+    let fileUrl = "";
+    let fileType = "text";
+
+    if (req.file) {
+      // الـ CloudinaryStorage بيبعت الرابط الجاهز في حقل الـ path تلقائياً
+      fileUrl = req.file.path; 
+      
+      // تحديد الـ fileType بناءً على الـ mimetype للملف
+      const mime = req.file.mimetype;
+      if (mime.startsWith("image/")) fileType = "image";
+      else if (mime.startsWith("video/")) fileType = "video";
+      else if (mime.startsWith("audio/")) fileType = "audio"; // للريكوردات والملفات الصوتية
+      else fileType = "file"; // للـ PDF والـ Zip وغيره
+    }
+
+    // شرط الأمان الجديد: لازم يكون فيه نص أو ملف مبعوت
+    if (!text && !fileUrl) {
+      return res.status(400).json({ message: "Cannot send an empty message" });
+    }
+
+    // جلب المحادثة من الداتا بيز
     const conversation = await Conversation.findById(conversationId);
     if (!conversation) return res.status(404).json({ message: "Conversation not found" });
 
     // ==================== [منطق التفرقة في الحظر] ====================
     if (!conversation.isGroup) {
-      // إيجاد الطرف التاني في المحادثة الخاصّة
       const targetUserId = conversation.participants.find(
         (id) => id.toString() !== senderId.toString()
       );
 
       if (targetUserId) {
-        // 1. فحص هل المرسل الحالي هو اللي عامل بلوك؟
         const iBlockedThem = await UserPreference.findOne({
           user: senderId,
           targetUser: targetUserId,
@@ -37,7 +56,6 @@ exports.sendMessage = async (req, res) => {
           });
         }
 
-        // 2. فحص هل الطرف الثاني هو اللي عامل بلوك للمرسل؟
         const theyBlockedMe = await UserPreference.findOne({
           user: targetUserId,
           targetUser: senderId,
@@ -53,29 +71,52 @@ exports.sendMessage = async (req, res) => {
     }
     // =============================================================
 
-    // كود الحفظ والإرسال الطبيعي (يكمل لو مفيش بلوك أو لو كانت المحادثة جروب)
+    // 1. إنشاء الرسالة أولاً في قاعدة البيانات
     const newMessage = await Message.create({
       conversationId,
       sender: senderId,
-      text,
+      text: text || "", 
+      fileUrl,
+      fileType
     });
 
-    const message = await newMessage.populate("sender", "firstName lastName username");
+    // عمل populate لبيانات مرسل الرسالة عشان الفرونت إيند يقرأ الـ sender كـ object سليم
+    const message = await newMessage.populate("sender", "firstName lastName username avatar");
 
-    await Conversation.updateOne(
-      { _id: conversationId },
-      {
-        $set: { lastMessage: message._id, updatedAt: new Date() },
-        $inc: { "unreadCounts.$[elem].count": 1 }
-      },
-      {
-        arrayFilters: [{ "elem.user": { $ne: senderId } }]
+    // 2. تحديث الـ unreadCounts و الـ lastMessage برمجياً وبشكل آمن تماماً
+    // بنلف على كل المشاركين، وأي حد مش هو المرسل بنزود عداده أو ننشأه لو المصفوفة فاضية
+    if (!conversation.unreadCounts) conversation.unreadCounts = [];
+
+    conversation.participants.forEach((participantId) => {
+      if (participantId.toString() !== senderId.toString()) {
+        const userUnread = conversation.unreadCounts.find(
+          (u) => u.user.toString() === participantId.toString()
+        );
+
+        if (userUnread) {
+          userUnread.count += 1; // لو الأوبجكت موجود نزود العداد
+        } else {
+          // لو المصفوفة فاضية أو ملوش أوبجكت، بننشأ أوبجكت جديد بقيمة 1
+          conversation.unreadCounts.push({
+            user: participantId,
+            count: 1
+          });
+        }
       }
-    );
+    });
 
+    // تعيين آخر رسالة وتحديث وقت المحادثة لتصعد للأعلى
+    conversation.lastMessage = message._id;
+    conversation.updatedAt = new Date();
+    
+    // حفظ التعديلات الجذرية في قاعدة البيانات
+    await conversation.save();
+
+    // 3. جلب بيانات المحادثة المحدثة كاملة وعمل Populate شامل قبل إرسال السوكت
     const updatedConversation = await Conversation.findById(conversationId)
       .populate("participants", "firstName lastName username avatar")
       .populate("groupAdmin", "firstName lastName username avatar")
+      .populate("unreadCounts.user", "_id") // جلب الـ ID لتطابق شروط الفرونت إيند
       .populate({
         path: "lastMessage",
         populate: {
@@ -84,14 +125,17 @@ exports.sendMessage = async (req, res) => {
         },
       });
 
+    // 4. إرسال الأحداث لايف للمستخدمين عبر السوكت
     conversation.participants.forEach((participantId) => {
       const socketId = onlineUsers?.get(participantId.toString());
       if (socketId) {
+        // إرسال المحادثة والعداد الجديد المحدث من السيرفر
         io.to(socketId).emit("conversationUpdated", {
           ...updatedConversation.toObject(),
           hasNewMessage: true,
         });
 
+        // إرسال الرسالة الحقيقية للطرف الآخر
         if (participantId.toString() !== senderId.toString()) {
           io.to(socketId).emit("newMessage", {
             ...message.toObject(),
@@ -100,6 +144,8 @@ exports.sendMessage = async (req, res) => {
         }
       }
     });
+
+   
 
     return res.status(201).json(message);
   } catch (error) {

@@ -12,12 +12,39 @@ const messageSchema = new mongoose.Schema(
     },
     text: {
       type: String,
-      required: true,
+      default: "", // شيلنا الـ required عشان نعرف نبعت ميديا صافية بدون نص
     },
-    seen:{
+    
+    // === [حقول المرفقات الجديدة] ===
+    fileUrl: {
+      type: String,
+      default: "",
+    },
+    fileType: {
+      type: String,
+      enum: ["text", "image", "video", "audio", "file"],
+      default: "text",
+    },
+
+    // === [حقل الـ Seen القديم (للشات الخاص)] ===
+    seen: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
+
+    // === [نظام الـ Seen By الجديد للمستقبل (للجروبات والشات الخاص)] ===
+    seenBy: [
+      {
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+        seenAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
   },
   { timestamps: true }
 );

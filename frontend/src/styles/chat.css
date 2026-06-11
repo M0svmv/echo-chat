@@ -5,3 +5,408 @@
   padding: 0;
   box-sizing: border-box;
 }
+/* =========================================
+   MESSAGE INPUT - ADDITIONS & OVERRIDES
+   ========================================= */
+
+.message-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 8px 12px 12px;
+  background: var(--bg-secondary, #1a1a2e);
+  border-top: 1px solid var(--border-color, rgba(108, 0, 254, 0.2));
+}
+
+.message-input-container {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+/* ===== زرار الميكروفون ===== */
+.message-mic-button {
+  min-width: 40px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+  transition: background 0.2s, transform 0.15s;
+  background: var(--primary, #6c00fe);
+  color: #fff;
+}
+
+.message-mic-button:hover {
+  background: var(--primary-hover, #7b1fff);
+  transform: scale(1.08);
+}
+
+/* ===== زرار الإرفاق ===== */
+.message-attach-button {
+  min-width: 36px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+  transition: background 0.2s, transform 0.15s;
+  background: transparent;
+  color: var(--text-muted, #aaa);
+  margin-bottom: 1px;
+}
+
+.message-attach-button:hover {
+  background: var(--bg-hover, rgba(108, 0, 254, 0.15));
+  color: var(--primary, #6c00fe);
+  transform: rotate(20deg);
+}
+
+/* ===== زرار السيند ===== */
+.message-send-button {
+  min-width: 40px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  flex-shrink: 0;
+  transition: background 0.2s, transform 0.15s;
+  background: var(--primary, #6c00fe);
+  color: #fff;
+}
+
+.message-send-button:hover {
+  background: var(--primary-hover, #7b1fff);
+  transform: scale(1.08);
+}
+
+/* ===== الـ Textarea ===== */
+.message-input {
+  flex: 1;
+  resize: none;
+  min-height: 40px;
+  max-height: 140px;
+  overflow-y: auto;
+  border-radius: 20px;
+  padding: 10px 16px;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  background: var(--bg-input, rgba(255,255,255,0.06));
+  color: var(--text-primary, #fff);
+  border: 1px solid var(--border-color, rgba(108, 0, 254, 0.25));
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.message-input:focus {
+  border-color: var(--primary, #6c00fe);
+}
+
+.message-input::placeholder {
+  color: var(--text-muted, #888);
+}
+
+/* =========================================
+   ATTACHMENT PREVIEW
+   ========================================= */
+
+.attachment-preview {
+  position: relative;
+  background: var(--bg-hover, rgba(108, 0, 254, 0.1));
+  border: 1px solid var(--border-color, rgba(108, 0, 254, 0.3));
+  border-radius: 12px;
+  padding: 10px;
+  margin-bottom: 8px;
+  max-width: 320px;
+  align-self: flex-start;
+}
+
+.remove-attachment {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  background: rgba(0,0,0,0.5);
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.75rem;
+  z-index: 2;
+  transition: background 0.2s;
+}
+
+.remove-attachment:hover {
+  background: #dc3545;
+}
+
+.preview-image {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
+}
+
+.preview-video {
+  width: 100%;
+  max-height: 200px;
+  border-radius: 8px;
+  display: block;
+}
+
+.preview-audio {
+  width: 100%;
+  height: 36px;
+  border-radius: 8px;
+}
+
+.preview-file {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 4px;
+  color: var(--text-primary, #fff);
+}
+
+.preview-file-icon {
+  font-size: 1.6rem;
+}
+
+.preview-file-name {
+  font-size: 0.85rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
+}
+
+/* =========================================
+   RECORDING BAR
+   ========================================= */
+
+.recording-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 4px;
+  min-height: 56px;
+  flex-wrap: nowrap;
+}
+
+/* النبضة الحمراء */
+.recording-pulse {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #e53935;
+  flex-shrink: 0;
+  animation: pulse-rec 1s ease-in-out infinite;
+}
+
+@keyframes pulse-rec {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.7); }
+}
+
+.recording-label {
+  font-size: 0.9rem;
+  color: #e53935;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.recording-timer {
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary, #fff);
+  min-width: 44px;
+  flex-shrink: 0;
+}
+
+.recording-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.rec-cancel-btn,
+.rec-send-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: opacity 0.2s, transform 0.15s;
+}
+
+.rec-cancel-btn:hover,
+.rec-send-btn:hover {
+  opacity: 0.85;
+  transform: scale(1.04);
+}
+
+.rec-cancel-btn {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-muted, #ccc);
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+.rec-send-btn {
+  background: var(--primary, #6c00fe);
+  color: #fff;
+}
+
+/* =========================================
+   MEDIA IN MESSAGES (MessagesList)
+   ========================================= */
+
+.message.has-media .text {
+  display: none; /* النص يتعرض داخل MessageMedia كـ caption */
+}
+
+/* صورة */
+.msg-media-wrapper {
+  max-width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.msg-image {
+  width: 100%;
+  max-width: 280px;
+  max-height: 300px;
+  object-fit: cover;
+  border-radius: 10px;
+  display: block;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.msg-image:hover {
+  opacity: 0.9;
+}
+
+/* فيديو */
+.msg-video {
+  width: 100%;
+  max-width: 280px;
+  max-height: 250px;
+  border-radius: 10px;
+  display: block;
+}
+
+/* كابشن للصورة والفيديو */
+.msg-caption {
+  font-size: 0.875rem;
+  color: var(--text-primary, #fff);
+  margin: 4px 2px 0;
+  line-height: 1.4;
+}
+
+/* صوت */
+.msg-audio-wrapper {
+  min-width: 200px;
+  max-width: 280px;
+}
+
+.msg-audio {
+  width: 100%;
+  height: 36px;
+  border-radius: 8px;
+}
+
+/* ملف */
+.msg-file-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  min-width: 180px;
+  max-width: 280px;
+}
+
+.msg-file-icon {
+  font-size: 1.4rem;
+  color: var(--primary, #6c00fe);
+  flex-shrink: 0;
+}
+
+.msg-file-name {
+  flex: 1;
+  font-size: 0.82rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-primary, #fff);
+}
+
+.msg-file-download {
+  color: var(--text-muted, #aaa);
+  text-decoration: none;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  transition: color 0.2s;
+}
+
+.msg-file-download:hover {
+  color: var(--primary, #6c00fe);
+}
+
+/* ===== حالة البلوك ===== */
+.message-blocked-container {
+  padding: 12px 16px;
+  text-align: center;
+  color: var(--text-muted, #aaa);
+  font-size: 0.875rem;
+  background: var(--bg-secondary, #1a1a2e);
+  border-top: 1px solid var(--border-color, rgba(108, 0, 254, 0.2));
+}
+
+.message.optimistic-loading {
+  opacity: 0.7;
+}
+
+/* دائرة التحميل للرسالة الجاري إرسالها */
+.msg-sending-spinner {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: msg-spin 0.8s linear infinite;
+  margin-left: 2px;
+}
+
+@keyframes msg-spin {
+  to { transform: rotate(360deg); }
+}

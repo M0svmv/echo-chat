@@ -389,13 +389,34 @@ setCloseFriends(closeFriendsRes.map((u) => (u.targetUser?._id || u._id || u).toS
                     {conv.lastMessage && (
                       <div className="last-message">
                         <span className="last-message-text">
-                          <span className="last-message-name">
-                            {(conv.lastMessage.sender?._id || conv.lastMessage.sender) === currentUser._id
-                              ? "You"
-                              : `@${conv.lastMessage.sender?.username}`}:
-                          </span>{" "}
-                          {conv.lastMessage.text}
-                        </span>
+  <span className="last-message-name">
+    {(conv.lastMessage.sender?._id || conv.lastMessage.sender) === currentUser?._id
+      ? "You"
+      : `@${conv.lastMessage.sender?.username}`}:
+  </span>{" "}
+  
+  {(() => {
+    const lastMsg = conv.lastMessage;
+    
+    // لو الرسالة ميديا (صورة، فيديو، ريكورد، ملف) ومش نصية صافية
+    if (lastMsg.fileUrl && lastMsg.fileType !== "text") {
+      let icon = "📁 ";
+      let typeText = "File";
+
+      if (lastMsg.fileType === "image") { icon = "📷 "; typeText = "Photo"; }
+      else if (lastMsg.fileType === "video") { icon = "🎥 "; typeText = "Video"; }
+      else if (lastMsg.fileType === "audio") { icon = "🎤 "; typeText = "Voice message"; }
+
+      // لو كاتب كابشن (نص) مع الصورة أو الفيديو يظهر جمبها، لو مش كاتب يظهر الاختصار بس
+      return lastMsg.text 
+        ? `${icon} ${typeText}: ${lastMsg.text}`
+        : `${icon} ${typeText}`;
+    }
+
+    // لو رسالة نصية عادية
+    return lastMsg.text || "Sent an attachment";
+  })()}
+</span>
                         <span className="last-message-time">
                           {(conv.lastMessage.sender?._id || conv.lastMessage.sender) === currentUser._id && (
                             <span className="last-message-seen">

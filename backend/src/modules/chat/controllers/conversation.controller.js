@@ -38,6 +38,7 @@ exports.getUserConversations = async (req, res) => {
   archivedBy: { $ne: userId },
 })
   .populate("participants", "firstName lastName username avatar")
+  .populate("unreadCounts.user", "_id")
   .populate({
     path: "lastMessage",
     populate: {

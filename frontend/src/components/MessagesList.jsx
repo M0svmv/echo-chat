@@ -11,13 +11,14 @@ import {
 } from "../features/chat/chatSlice";
 import "../styles/messagesList.css";
 
-import { FaSearch, FaCheck, FaCheckDouble, FaVideo } from "react-icons/fa";
+import { FaSearch, FaCheck, FaCheckDouble, FaVideo, FaFileAlt, FaDownload } from "react-icons/fa";
 import { FaPhone } from "react-icons/fa6";
 import { FiMoreVertical, FiArchive, FiX, FiInfo, FiLogOut } from "react-icons/fi";
 
 import NotSelectedChat from "./NotSelectedChat";
-import GroupDetails from "./GroupDetails"; // ✅ استيراد موديل تفاصيل الجروب
+import GroupDetails from "./GroupDetails";
 
+// ===== مكون الأفاتار =====
 const ChatAvatar = memo(({ isGroup, groupImage, groupName, avatar, firstName, lastName }) => {
   if (isGroup) {
     if (groupImage) {
@@ -41,16 +42,74 @@ const ChatAvatar = memo(({ isGroup, groupImage, groupName, avatar, firstName, la
       </div>
     );
   }
-  
+
   return (
     <div className="avatar-placeholder">
       {firstName && lastName ? firstName.charAt(0) + lastName.charAt(0) : "?"}
     </div>
   );
 });
-
 ChatAvatar.displayName = "ChatAvatar";
 
+// ===== مكون عرض الميديا =====
+const MessageMedia = memo(({ fileUrl, fileType, text }) => {
+  if (!fileUrl || fileType === "text") return null;
+
+  if (fileType === "image") {
+    return (
+      <div className="msg-media-wrapper">
+        <a href={fileUrl} target="_blank" rel="noopener noreferrer">
+          <img src={fileUrl} alt="Image" className="msg-image" loading="lazy" />
+        </a>
+        {text && <p className="msg-caption">{text}</p>}
+      </div>
+    );
+  }
+
+  if (fileType === "video") {
+    return (
+      <div className="msg-media-wrapper">
+        <video
+          src={fileUrl}
+          className="msg-video"
+          controls
+          preload="metadata"
+        />
+        {text && <p className="msg-caption">{text}</p>}
+      </div>
+    );
+  }
+
+  if (fileType === "audio") {
+    return (
+      <div className="msg-audio-wrapper">
+        <audio src={fileUrl} controls className="msg-audio" preload="metadata" />
+      </div>
+    );
+  }
+
+  // fileType === "file" (pdf, docx, zip, etc.)
+  const fileName = fileUrl.split("/").pop().split("?")[0] || "Download File";
+  return (
+    <div className="msg-file-wrapper">
+      <FaFileAlt className="msg-file-icon" />
+      <span className="msg-file-name">{fileName}</span>
+      <a
+        href={fileUrl}
+        download
+        target="_blank"
+        rel="noopener noreferrer"
+        className="msg-file-download"
+        title="Download"
+      >
+        <FaDownload />
+      </a>
+    </div>
+  );
+});
+MessageMedia.displayName = "MessageMedia";
+
+// ===== الكومبوننت الرئيسي =====
 export default function MessagesList() {
   const dispatch = useDispatch();
 
@@ -70,17 +129,15 @@ export default function MessagesList() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [viewingGroupDetails, setViewingGroupDetails] = useState(null); // ✅ حالة عرض تفاصيل الجروب من الداخل
+  const [viewingGroupDetails, setViewingGroupDetails] = useState(null);
 
   const filteredMessages = messages.filter((msg) =>
     msg.text?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const displayedMessages = searchQuery ? filteredMessages : messages;
-
   const isArchived = active?.archivedBy?.includes(currentUser?._id);
 
-  // إغلاق القائمة المنسدلة عند الضغط في أي مكان خارجي
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -93,23 +150,18 @@ export default function MessagesList() {
 
   useEffect(() => {
     if (!active || !messagesRef.current) return;
-
     const container = messagesRef.current;
-
     const handleScroll = () => {
-      const threshold = 100;
       const atBottom =
-        container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
+        container.scrollHeight - container.scrollTop - container.clientHeight < 100;
       setIsAtBottom(atBottom);
     };
-
     container.addEventListener("scroll", handleScroll);
     return () => container.removeEventListener("scroll", handleScroll);
   }, [active]);
 
   useEffect(() => {
     if (!active) return;
-
     const fetchMessages = async () => {
       try {
         const res = await api.get(`/messages/${active._id}`);
@@ -118,13 +170,11 @@ export default function MessagesList() {
         console.error("Fetch Messages Error:", error);
       }
     };
-
     fetchMessages();
   }, [active?._id, dispatch]);
 
   useEffect(() => {
     if (!active) return;
-
     socket.emit("markAsSeen", {
       conversationId: active._id,
       userId: currentUser?._id,
@@ -133,17 +183,17 @@ export default function MessagesList() {
 
   useEffect(() => {
     if (!active) return;
-
     socket.on("newMessage", (msg) => {
       if (msg.conversationId === active._id) {
-        dispatch(addMessage(msg));
+        // التعديل هنا: نمرر أوبجكت فيه الرسالة والـ ID بتاعك
+        dispatch(addMessage({ message: msg, currentUserId: currentUser?._id }));
+        
         socket.emit("markAsSeen", {
           conversationId: active._id,
           userId: currentUser?._id,
         });
       }
     });
-
     return () => socket.off("newMessage");
   }, [active?._id, currentUser?._id, dispatch]);
 
@@ -153,7 +203,6 @@ export default function MessagesList() {
         dispatch(markMessagesSeen(data));
       }
     });
-
     return () => socket.off("messagesSeen");
   }, [active?._id, dispatch]);
 
@@ -164,7 +213,6 @@ export default function MessagesList() {
         setShowDropdown(false);
       }
     });
-
     return () => socket.off("conversationArchived");
   }, [active?._id, dispatch]);
 
@@ -183,7 +231,7 @@ export default function MessagesList() {
   useEffect(() => {
     setShowSearch(false);
     setSearchQuery("");
-    setViewingGroupDetails(null); // ريست للتفاصيل عند الانتقال لشات آخر
+    setViewingGroupDetails(null);
   }, [active?._id]);
 
   const handleArchive = () => {
@@ -194,14 +242,12 @@ export default function MessagesList() {
     setShowDropdown(false);
   };
 
-  // ✅ دالة الخروج من الجروب من داخل الشات المفتوح
   const handleLeaveGroup = async () => {
     const confirmLeave = window.confirm("Are you sure you want to leave this group?");
     if (!confirmLeave) return;
-
     try {
       await api.put(`/chats/group/leave/${active._id}`);
-      dispatch(removeConversation(active._id)); // إغلاق الشات فوراً وحذفه من الريدكس
+      dispatch(removeConversation(active._id));
       setShowDropdown(false);
     } catch (error) {
       console.error("Failed to leave group from chat view:", error);
@@ -211,17 +257,13 @@ export default function MessagesList() {
 
   if (!active) return <NotSelectedChat />;
 
-  // ✅ عرض صفحة تفاصيل الجروب إذا تم تفعيلها من القائمة
   if (viewingGroupDetails) {
     return (
-      <GroupDetails 
-        group={active} 
+      <GroupDetails
+        group={active}
         currentUser={currentUser}
-        onBack={() => setViewingGroupDetails(false)} 
-        onGroupUpdated={(updatedGroup) => {
-          // يمكن تفعيل التحديث عبر الريدكس أو الـ Socket المربوط مسبقاً بالشاشة الرئيسية
-          setViewingGroupDetails(false);
-        }}
+        onBack={() => setViewingGroupDetails(false)}
+        onGroupUpdated={() => setViewingGroupDetails(false)}
       />
     );
   }
@@ -230,23 +272,20 @@ export default function MessagesList() {
     <div className="chatContainer">
       <div className="chat-container-header">
         <div className="receiver-details">
-          
-          <ChatAvatar 
+          <ChatAvatar
             isGroup={active.isGroup}
             groupImage={active.groupImage}
             groupName={active.groupName}
-            avatar={receiver?.avatar} 
-            firstName={receiver?.firstName} 
-            lastName={receiver?.lastName} 
+            avatar={receiver?.avatar}
+            firstName={receiver?.firstName}
+            lastName={receiver?.lastName}
           />
-
           <div className="receiver">
-            {active.isGroup 
-              ? active.groupName 
-              : receiver 
-                ? `${receiver.firstName} ${receiver.lastName}` 
-                : "Unknown User"
-            }
+            {active.isGroup
+              ? active.groupName
+              : receiver
+                ? `${receiver.firstName} ${receiver.lastName}`
+                : "Unknown User"}
           </div>
         </div>
 
@@ -274,33 +313,35 @@ export default function MessagesList() {
 
             {showDropdown && (
               <div className="dropdown-menu chat-more-options">
-                
-                {/* ✅ خيار معلومات الجروب - يظهر فقط للجروبات */}
                 {active.isGroup && (
-                  <button className="dropdown-item" onClick={() => { setViewingGroupDetails(true); setShowDropdown(false); }}>
+                  <button
+                    className="dropdown-item"
+                    onClick={() => { setViewingGroupDetails(true); setShowDropdown(false); }}
+                  >
                     <FiInfo />
                     <span>Group Info</span>
                   </button>
                 )}
 
-                {/* خيار الأرشفة الديناميكي */}
                 <button className="dropdown-item" onClick={handleArchive}>
                   <FiArchive />
                   <span>
-                    {isArchived 
-                      ? (active.isGroup ? "Unarchive Group" : "Unarchive Chat") 
+                    {isArchived
+                      ? (active.isGroup ? "Unarchive Group" : "Unarchive Chat")
                       : (active.isGroup ? "Archive Group" : "Archive Chat")}
                   </span>
                 </button>
 
-                {/* ✅ خيار مغادرة الجروب - يظهر فقط للجروبات باللون الأحمر */}
                 {active.isGroup && (
-                  <button className="dropdown-item" onClick={handleLeaveGroup} style={{ color: "#dc3545" }}>
+                  <button
+                    className="dropdown-item"
+                    onClick={handleLeaveGroup}
+                    style={{ color: "#dc3545" }}
+                  >
                     <FiLogOut />
                     <span>Leave Group</span>
                   </button>
                 )}
-
               </div>
             )}
           </div>
@@ -334,11 +375,13 @@ export default function MessagesList() {
       <div className="messages-container" ref={messagesRef}>
         {displayedMessages.map((msg) => {
           const isMine = msg.sender?._id === currentUser?._id;
+          const hasMedia = msg.fileUrl && msg.fileType !== "text";
+          const showText = msg.text && !(hasMedia && !msg.text);
 
           return (
             <div
               key={msg._id}
-              className={`message ${isMine ? "mine" : "theirs"}`}
+              className={`message ${isMine ? "mine" : "theirs"} ${hasMedia ? "has-media" : ""} ${msg.isSending ? "optimistic-loading" : ""}`}
             >
               {!isMine && (
                 <div className="sender">
@@ -349,7 +392,19 @@ export default function MessagesList() {
                 </div>
               )}
 
-              <div className="text">{msg.text}</div>
+              {/* عرض الميديا */}
+              {hasMedia && (
+                <MessageMedia
+                  fileUrl={msg.fileUrl}
+                  fileType={msg.fileType}
+                  text={msg.text}
+                />
+              )}
+
+              {/* النص */}
+              {showText && !hasMedia && (
+                <div className="text">{msg.text}</div>
+              )}
 
               <div className="send-details">
                 <div className={`timestamp ${isMine ? "mine" : "theirs"}`}>
@@ -361,7 +416,13 @@ export default function MessagesList() {
 
                 {isMine && !active.isGroup && (
                   <div className="seen">
-                    {msg.seen ? <FaCheckDouble /> : <FaCheck />}
+                    {msg.isSending ? (
+                      <span className="msg-sending-spinner" />
+                    ) : msg.seen ? (
+                      <FaCheckDouble />
+                    ) : (
+                      <FaCheck />
+                    )}
                   </div>
                 )}
               </div>
