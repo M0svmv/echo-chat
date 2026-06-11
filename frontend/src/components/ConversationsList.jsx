@@ -243,23 +243,21 @@ export default function ConversationsList() {
 
       try {
         // 4️⃣ جلب طلبات الصداقة الواردة (received) بالتوازي مع باقي البيانات
-        const [requestsRes, receivedRes, friendsRes, blockedRes, closeFriendsRes] = await Promise.all([
-          api.get("/friends/requests/sent").catch(() => ({ data: [] })),
-          api.get("/friends/requests").catch(() => ({ data: [] })), // جلب الطلبات الواردة
-          api.get("/friends/all").catch(() => ({ data: [] })),
-          api.get("/friends/blocked").catch(() => ({ data: [] })),
-          api.get("/friends/close").catch(() => ({ data: [] }))
-        ]);
+        const res = await api.get("/friends/summary").catch(() => ({ data: {} }));
 
-        const incomingSent = Array.isArray(requestsRes.data) ? requestsRes.data : requestsRes.data?.requests || [];
-        const incomingReceived = Array.isArray(receivedRes.data) ? receivedRes.data : receivedRes.data?.requests || [];
+const {
+  friendsRes = [],
+  requestsRes = [],
+  receivedRes = [],
+  blockedRes = [],
+  closeFriendsRes = [],
+} = res.data;
 
-        setPendingRequests(incomingSent);
-        setReceivedRequests(incomingReceived);
-        setLocalFriends(friendsRes.data || []);
-        
-        setBlockedUsers((blockedRes.data || []).map(u => (u.targetUser?._id || u._id || u).toString()));
-        setCloseFriends((closeFriendsRes.data || []).map(u => (u.targetUser?._id || u._id || u).toString()));
+setPendingRequests(requestsRes);
+setReceivedRequests(receivedRes);
+setLocalFriends(friendsRes);
+setBlockedUsers(blockedRes.map((u) => (u.targetUser?._id || u._id || u).toString()));
+setCloseFriends(closeFriendsRes.map((u) => (u.targetUser?._id || u._id || u).toString()));
         
       } catch (error) {
         console.error("Failed to fetch friends data secondary fields:", error);

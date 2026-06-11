@@ -120,3 +120,24 @@
     border: var(--border-hovered)
 
 }
+
+/* تنسيق بنر الحظر جوه نفس كونتينر الإدخال */
+/* كونتينر البلوك الكامل اللي بيستبدل كونتينر الإدخال */
+.message-blocked-container {
+  display: flex;
+    flex-direction: row;
+    gap: var(--small-padding);
+    padding: var(--medium-padding);
+    background: var(--color-warning-bg);
+    border-radius: var(--border-radius);
+    width: var(--full-percent);
+    min-height: var(--message-input-height);
+  height: auto;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    animation: pulse-shadow var(--animation-duration) infinite var(--transition-easing);
+    border: var(--border-error);
+  transition: border var(--transition-duration) var(--transition-easing);/* لضبط اتجاه النص العربي والأيقونة */
+    color:var(--color-error)
+}

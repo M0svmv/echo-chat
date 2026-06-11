@@ -23,4 +23,6 @@ router.get('/close-friends', protect, friendsController.getCloseFriends); // ي�
 router.get('/blocked', protect, friendsController.getBlockedUsers); // يجيب لستة البلوك
 router.post('/preference', protect, friendsController.makePreference); // عمل بلوك أو إضافة للـ close_friend
 
+
+router.get('/summary', protect, friendsController.getFriendsSummary);
 module.exports = router;

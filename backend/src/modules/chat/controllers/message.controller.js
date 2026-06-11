@@ -1,5 +1,6 @@
 const Message = require("../../../models/message.model");
 const Conversation = require("../../../models/conversation.model");
+const UserPreference = require("../../../models/userPreference.model");
 
 exports.sendMessage = async (req, res) => {
   try {
@@ -15,6 +16,44 @@ exports.sendMessage = async (req, res) => {
     const conversation = await Conversation.findById(conversationId);
     if (!conversation) return res.status(404).json({ message: "Conversation not found" });
 
+    // ==================== [منطق التفرقة في الحظر] ====================
+    if (!conversation.isGroup) {
+      // إيجاد الطرف التاني في المحادثة الخاصّة
+      const targetUserId = conversation.participants.find(
+        (id) => id.toString() !== senderId.toString()
+      );
+
+      if (targetUserId) {
+        // 1. فحص هل المرسل الحالي هو اللي عامل بلوك؟
+        const iBlockedThem = await UserPreference.findOne({
+          user: senderId,
+          targetUser: targetUserId,
+          type: "block"
+        });
+
+        if (iBlockedThem) {
+          return res.status(403).json({ 
+            message: "You have blocked this user. Unblock them to send messages." 
+          });
+        }
+
+        // 2. فحص هل الطرف الثاني هو اللي عامل بلوك للمرسل؟
+        const theyBlockedMe = await UserPreference.findOne({
+          user: targetUserId,
+          targetUser: senderId,
+          type: "block"
+        });
+
+        if (theyBlockedMe) {
+          return res.status(403).json({ 
+            message: "Cannot send message. This user has blocked you." 
+          });
+        }
+      }
+    }
+    // =============================================================
+
+    // كود الحفظ والإرسال الطبيعي (يكمل لو مفيش بلوك أو لو كانت المحادثة جروب)
     const newMessage = await Message.create({
       conversationId,
       sender: senderId,

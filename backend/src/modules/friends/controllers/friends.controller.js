@@ -355,3 +355,27 @@ exports.removeFriend = async (req, res) => {
     return res.status(500).json({ error: error.message || "Internal server error" });
   }
 };
+
+
+exports.getFriendsSummary = async (req,res) => {
+
+  try{
+
+    const userId = req.user._id;
+
+    const[reqSent,reqReceived,friends,closeFriends,blocked] = await Promise.all([
+      FriendRequest.find({sender:userId,status:"pending"}).populate("receiver","firstName lastName username avatar"),
+      FriendRequest.find({receiver:userId,status:"pending"}).populate("sender","firstName lastName username avatar"),
+      UserPreference.find({user:userId,type:"friend"}).populate("targetUser","firstName lastName username avatar"),
+      UserPreference.find({user:userId,type:"close_friend"}).populate("targetUser","firstName lastName username avatar"),
+      UserPreference.find({user:userId,type:"block"}).populate("targetUser","firstName lastName username avatar"),
+        
+    ])
+
+    return res.status(200).json({requestsRes:reqSent,receivedRes:reqReceived,friendsRes:friends,closeFriendsRes:closeFriends,blockedRes:blocked});
+
+  }catch(err){
+    return res.status(500).json({ error: err.message || "Internal server error" });
+  }
+
+}
