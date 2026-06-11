@@ -19,6 +19,7 @@ body {
 
 
 ::-webkit-scrollbar {
+  margin: 20px!important;
   width: 10px;
   height: 10px;
   
@@ -33,9 +34,11 @@ body {
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
+  
   background: var(--color-secondary);
   border-radius: 10px;
   border: 2px solid var(--color-background);
+  
 }
 
 /* Hover effect */

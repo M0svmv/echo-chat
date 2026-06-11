@@ -11,8 +11,11 @@ import {
 } from "../features/chat/chatSlice";
 import "../styles/messagesList.css";
 
-import { FaSearch, FaCheck, FaCheckDouble, FaVideo, FaFileAlt, FaDownload } from "react-icons/fa";
-import { FaPhone } from "react-icons/fa6";
+import { 
+  FaSearch, FaCheck, FaCheckDouble, FaVideo, FaFileAlt, FaDownload,
+  FaStar, FaBan, FaUserMinus, FaUserPlus, FaUserTimes, FaUnlock, FaUserCheck
+} from "react-icons/fa";
+import { FaPhone, FaRegFilePdf, FaRegFileZipper } from "react-icons/fa6";
 import { FiMoreVertical, FiArchive, FiX, FiInfo, FiLogOut } from "react-icons/fi";
 
 import NotSelectedChat from "./NotSelectedChat";
@@ -70,12 +73,7 @@ const MessageMedia = memo(({ fileUrl, fileType, text }) => {
   if (fileType === "video") {
     return (
       <div className="msg-media-wrapper">
-        <video
-          src={fileUrl}
-          className="msg-video"
-          controls
-          preload="metadata"
-        />
+        <video src={fileUrl} className="msg-video" controls preload="metadata" />
         {text && <p className="msg-caption">{text}</p>}
       </div>
     );
@@ -84,23 +82,38 @@ const MessageMedia = memo(({ fileUrl, fileType, text }) => {
   if (fileType === "audio") {
     return (
       <div className="msg-audio-wrapper">
-        <CustomAudioPlayer src={fileUrl} controls className="msg-audio" preload="metadata" />
+        <CustomAudioPlayer src={fileUrl} className="msg-audio" />
       </div>
     );
   }
 
-  // fileType === "file" (pdf, docx, zip, etc.)
+  // ===== 📄 معالجة الملفات والمستندات =====
   const fileName = fileUrl.split("/").pop().split("?")[0] || "Download File";
+  const lowerFileName = fileName.toLowerCase();
+
+  let fileIcon = <FaFileAlt className="msg-file-icon" />;
+  let fileClass = "generic-file";
+
+  if (lowerFileName.endsWith(".pdf")) {
+    fileIcon = <FaRegFilePdf className="msg-file-icon"/>;
+    fileClass = "pdf-file";
+  } else if (lowerFileName.endsWith(".zip") || lowerFileName.endsWith(".rar")) {
+    fileIcon = <FaRegFileZipper className="msg-file-icon" />;
+    fileClass = "archive-file";
+  } else if (lowerFileName.endsWith(".docx") || lowerFileName.endsWith(".doc")) {
+    fileClass = "word-file";
+  }
+
   return (
-    <div className="msg-file-wrapper">
-      <FaFileAlt className="msg-file-icon" />
+    <div className={`msg-file-wrapper ${fileClass}`}>
+      {fileIcon}
       <span className="msg-file-name">{fileName}</span>
-      <a
-        href={fileUrl}
-        download
-        target="_blank"
-        rel="noopener noreferrer"
-        className="msg-file-download"
+      <a 
+        href={fileUrl} 
+        download 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        className="msg-file-download" 
         title="Download"
       >
         <FaDownload />
@@ -117,6 +130,7 @@ export default function MessagesList() {
   const messages = useSelector((state) => state.chat.messages);
   const active = useSelector((state) => state.chat.activeConversation);
   const currentUser = useSelector((state) => state.auth.user);
+  const reduxFriends = useSelector((state) => state.chat.friends || []);
 
   const receiver = useMemo(() => {
     if (!active || active.isGroup) return null;
@@ -132,13 +146,198 @@ export default function MessagesList() {
   const [searchQuery, setSearchQuery] = useState("");
   const [viewingGroupDetails, setViewingGroupDetails] = useState(null);
 
-  const filteredMessages = messages.filter((msg) =>
-    msg.text?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const [pendingRequests, setPendingRequests] = useState([]);
+  const [receivedRequests, setReceivedRequests] = useState([]);
+  const [localFriends, setLocalFriends] = useState([]);
+  const [blockedUsers, setBlockedUsers] = useState([]);
+  const [closeFriends, setCloseFriends] = useState([]);
 
-  const displayedMessages = searchQuery ? filteredMessages : messages;
   const isArchived = active?.archivedBy?.includes(currentUser?._id);
 
+  // ==========================================================================
+  // 🔍 لوجيك السيرش المتطور
+  // ==========================================================================
+  const matchingMessages = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    return messages.filter((msg) =>
+      msg.text?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [messages, searchQuery]);
+
+  const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
+
+  useEffect(() => {
+    if (matchingMessages.length > 0) {
+      const targetMsgId = matchingMessages[currentMatchIndex]?._id;
+      const targetElement = document.getElementById(`msg-${targetMsgId}`);
+      
+      if (targetElement) {
+        targetElement.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+  }, [matchingMessages, currentMatchIndex]);
+
+  useEffect(() => {
+    setCurrentMatchIndex(0);
+  }, [searchQuery, active?._id]);
+
+  const handleNextMatch = () => {
+    setCurrentMatchIndex((prev) => (prev + 1) % matchingMessages.length);
+  };
+
+  const handlePrevMatch = () => {
+    setCurrentMatchIndex((prev) => (prev - 1 + matchingMessages.length) % matchingMessages.length);
+  };
+
+  // ==========================================================================
+  // 🗓️ دالة تنسيق الفواصل الزمنية (اليوم - الأمس - التاريخ الكامل)
+  // ==========================================================================
+  const formatDividerDate = (dateString) => {
+    const messageDate = new Date(dateString);
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    if (messageDate.toDateString() === today.toDateString()) {
+      return "Today";
+    } else if (messageDate.toDateString() === yesterday.toDateString()) {
+      return "Yesterday";
+    } else {
+      // إرجاع التاريخ بصيغة مقروءة وممتازة (مثال: June 12, 2026)
+      return messageDate.toLocaleDateString([], { month: "long", day: "numeric", year: "numeric" });
+    }
+  };
+
+  // ==========================================================================
+  // 🔥 لوجيك إدارة الأصدقاء والعلاقات
+  // ==========================================================================
+  const handleArchive = () => {
+    socket.emit("archiveConversation", {
+      conversationId: active._id,
+      userId: currentUser?._id,
+    });
+    setShowDropdown(false);
+  };
+
+  const handleMakePreference = async (type) => {
+    if (!receiver) return;
+    if (type === "block" && !window.confirm(`Are you sure you want to block ${receiver.firstName}?`)) return;
+
+    try {
+      await api.post("/friends/preference", { type, targetUserId: receiver._id });
+      if (type === "block") {
+        setBlockedUsers((prev) => [...prev, receiver._id.toString()]);
+        setCloseFriends((prev) => prev.filter((id) => id !== receiver._id.toString()));
+        alert("User blocked successfully");
+      } else if (type === "close_friend") {
+        setCloseFriends((prev) => [...prev, receiver._id.toString()]);
+        alert("Added to close friends");
+      }
+      setShowDropdown(false);
+    } catch (err) {
+      console.error(err);
+      alert("Action failed");
+    }
+  };
+
+  const handleUnblockUser = async () => {
+    if (!receiver) return;
+    try {
+      await api.post("/friends/preference", { type: "unblock", targetUserId: receiver._id });
+      setBlockedUsers((prev) => prev.filter((id) => id !== receiver._id.toString()));
+      alert(`${receiver.firstName} has been unblocked.`);
+      setShowDropdown(false);
+    } catch (err) {
+      alert("Could not unblock user.");
+    }
+  };
+
+  const handleRemoveFriend = async () => {
+    if (!receiver) return;
+    if (!window.confirm(`Are you sure you want to remove ${receiver.firstName} from friends?`)) return;
+
+    try {
+      await api.delete("/friends/remove", { data: { friendId: receiver._id } });
+      setLocalFriends((prev) => prev.filter((f) => (f.targetUser?._id || f._id || f).toString() !== receiver._id.toString()));
+      setCloseFriends((prev) => prev.filter((id) => id !== receiver._id.toString()));
+      alert("Friend removed successfully");
+      setShowDropdown(false);
+    } catch (err) {
+      alert("Action failed");
+    }
+  };
+
+  const handleAddFriend = async () => {
+    if (!receiver || !currentUser) return;
+    try {
+      const res = await api.post(`/friends/request/`, { receiverId: receiver._id });
+      const newRequest = res.data?.request || res.data || {};
+      setPendingRequests((prev) => [...prev, {
+        _id: newRequest._id || Date.now().toString(),
+        sender: currentUser._id,
+        receiver: receiver._id,
+        status: "pending"
+      }]);
+      alert(`Friend request sent!`);
+      setShowDropdown(false);
+    } catch (err) {
+      alert("Could not send friend request.");
+    }
+  };
+
+  const handleCancelRequest = async (requestId) => {
+    if (!requestId) return;
+    try {
+      await api.delete(`/friends/request/delete/${requestId}`);
+      setPendingRequests((prev) => prev.filter((req) => req._id !== requestId));
+      alert("Friend request cancelled.");
+      setShowDropdown(false);
+    } catch (err) {
+      alert("Could not cancel request.");
+    }
+  };
+
+  const handleAcceptRequest = async (requestId) => {
+    if (!requestId || !receiver) return;
+    try {
+      await api.post(`/friends/request/respond/${requestId}`, { action: "accepted" });
+      setLocalFriends((prev) => [...prev, receiver]);
+      setReceivedRequests((prev) => prev.filter((req) => req._id !== requestId));
+      alert(`You are now friends!`);
+      setShowDropdown(false);
+    } catch (err) {
+      alert("Could not accept request.");
+    }
+  };
+
+  const handleRejectRequest = async (requestId) => {
+    if (!requestId) return;
+    try {
+      await api.post(`/friends/request/respond/${requestId}`, { action: "rejected" });
+      setReceivedRequests((prev) => prev.filter((req) => req._id !== requestId));
+      alert("Request declined.");
+      setShowDropdown(false);
+    } catch (err) {
+      alert("Could not decline request.");
+    }
+  };
+
+  const handleLeaveGroup = async () => {
+    const confirmLeave = window.confirm("Are you sure you want to leave this group?");
+    if (!confirmLeave) return;
+    try {
+      await api.put(`/chats/group/leave/${active._id}`);
+      dispatch(removeConversation(active._id));
+      setShowDropdown(false);
+    } catch (error) {
+      console.error(error);
+      alert("Could not leave group.");
+    }
+  };
+
+  // ==========================================================================
+  // 🔄 تأثيرات جلب البيانات والـ Event Listeners
+  // ==========================================================================
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -150,11 +349,30 @@ export default function MessagesList() {
   }, []);
 
   useEffect(() => {
+    if (!active) return;
+    const fetchRelations = async () => {
+      try {
+        const res = await api.get("/friends/summary").catch(() => ({ data: {} }));
+        const {
+          friendsRes = [], requestsRes = [], receivedRes = [], blockedRes = [], closeFriendsRes = [],
+        } = res.data;
+        setPendingRequests(requestsRes);
+        setReceivedRequests(receivedRes);
+        setLocalFriends(friendsRes);
+        setBlockedUsers(blockedRes.map((u) => (u.targetUser?._id || u._id || u).toString()));
+        setCloseFriends(closeFriendsRes.map((u) => (u.targetUser?._id || u._id || u).toString()));
+      } catch (err) {
+        console.error("Error syncing contextual features:", err);
+      }
+    };
+    fetchRelations();
+  }, [active?._id]);
+
+  useEffect(() => {
     if (!active || !messagesRef.current) return;
     const container = messagesRef.current;
     const handleScroll = () => {
-      const atBottom =
-        container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+      const atBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
       setIsAtBottom(atBottom);
     };
     container.addEventListener("scroll", handleScroll);
@@ -176,23 +394,15 @@ export default function MessagesList() {
 
   useEffect(() => {
     if (!active) return;
-    socket.emit("markAsSeen", {
-      conversationId: active._id,
-      userId: currentUser?._id,
-    });
+    socket.emit("markAsSeen", { conversationId: active._id, userId: currentUser?._id });
   }, [active?._id, currentUser?._id]);
 
   useEffect(() => {
     if (!active) return;
     socket.on("newMessage", (msg) => {
       if (msg.conversationId === active._id) {
-        // التعديل هنا: نمرر أوبجكت فيه الرسالة والـ ID بتاعك
         dispatch(addMessage({ message: msg, currentUserId: currentUser?._id }));
-        
-        socket.emit("markAsSeen", {
-          conversationId: active._id,
-          userId: currentUser?._id,
-        });
+        socket.emit("markAsSeen", { conversationId: active._id, userId: currentUser?._id });
       }
     });
     return () => socket.off("newMessage");
@@ -235,27 +445,6 @@ export default function MessagesList() {
     setViewingGroupDetails(null);
   }, [active?._id]);
 
-  const handleArchive = () => {
-    socket.emit("archiveConversation", {
-      conversationId: active._id,
-      userId: currentUser?._id,
-    });
-    setShowDropdown(false);
-  };
-
-  const handleLeaveGroup = async () => {
-    const confirmLeave = window.confirm("Are you sure you want to leave this group?");
-    if (!confirmLeave) return;
-    try {
-      await api.put(`/chats/group/leave/${active._id}`);
-      dispatch(removeConversation(active._id));
-      setShowDropdown(false);
-    } catch (error) {
-      console.error("Failed to leave group from chat view:", error);
-      alert(error.response?.data?.message || "Could not leave group.");
-    }
-  };
-
   if (!active) return <NotSelectedChat />;
 
   if (viewingGroupDetails) {
@@ -268,6 +457,29 @@ export default function MessagesList() {
       />
     );
   }
+
+  const currentFriendsList = reduxFriends.length > 0 ? reduxFriends : localFriends;
+
+  const isAlreadyFriend = receiver && currentFriendsList.some((f) => {
+    if (!f) return false;
+    
+    if (f.sender && f.receiver) {
+      const senderId = f.sender._id || f.sender;
+      const receiverId = f.receiver._id || f.receiver;
+      
+      const friendId = senderId.toString() === currentUser?._id?.toString() ? receiverId : senderId;
+      return friendId.toString() === receiver._id.toString();
+    }
+    
+    const friendId = f.targetUser?._id || f._id || f.user?._id || (typeof f === 'string' ? f : null);
+    return friendId && friendId.toString() === receiver._id.toString();
+  });
+  
+  const sentRequest = receiver && pendingRequests.find((req) => (req.sender?._id || req.sender || "").toString() === currentUser?._id?.toString() && (req.receiver?._id || req.receiver || "").toString() === receiver._id.toString());
+  const incomingRequest = receiver && receivedRequests.find((req) => (req.sender?._id || req.sender || "").toString() === receiver._id.toString() && (req.receiver?._id || req.receiver || "").toString() === currentUser?._id?.toString());
+  
+  const isBlocked = receiver && blockedUsers.includes(receiver._id.toString());
+  const isCloseFriend = receiver && closeFriends.includes(receiver._id.toString());
 
   return (
     <div className="chatContainer">
@@ -287,6 +499,9 @@ export default function MessagesList() {
               : receiver
                 ? `${receiver.firstName} ${receiver.lastName}`
                 : "Unknown User"}
+            {!active.isGroup && isCloseFriend && (
+              <FaStar style={{ color: "#ffc107", marginLeft: "6px", fontSize: "0.85rem" }} title="Close Friend" />
+            )}
           </div>
         </div>
 
@@ -294,31 +509,19 @@ export default function MessagesList() {
           {!active.isGroup && <div className="call"><FaPhone /></div>}
           {!active.isGroup && <div className="video"><FaVideo /></div>}
 
-          <div
-            className="search"
-            onClick={() => {
-              setShowSearch((prev) => !prev);
-              setSearchQuery("");
-            }}
-          >
+          <div className="search" onClick={() => { setShowSearch((prev) => !prev); setSearchQuery(""); }}>
             <FaSearch />
           </div>
 
           <div className="more-options" ref={dropdownRef}>
-            <div
-              className="more-options-btn"
-              onClick={() => setShowDropdown((prev) => !prev)}
-            >
+            <div className="more-options-btn" onClick={() => setShowDropdown((prev) => !prev)}>
               <FiMoreVertical />
             </div>
 
             {showDropdown && (
               <div className="dropdown-menu chat-more-options">
                 {active.isGroup && (
-                  <button
-                    className="dropdown-item"
-                    onClick={() => { setViewingGroupDetails(true); setShowDropdown(false); }}
-                  >
+                  <button className="dropdown-item" onClick={() => { setViewingGroupDetails(true); setShowDropdown(false); }}>
                     <FiInfo />
                     <span>Group Info</span>
                   </button>
@@ -333,12 +536,71 @@ export default function MessagesList() {
                   </span>
                 </button>
 
+                {!active.isGroup && receiver && (
+                  <>
+                    {!isAlreadyFriend ? (
+                      incomingRequest ? (
+                        <>
+                          <button className="dropdown-item" onClick={() => handleAcceptRequest(incomingRequest._id)} style={{ color: "#28a745" }}>
+                            <FaUserCheck />
+                            <span>Accept Friend Request</span>
+                          </button>
+                          <button className="dropdown-item" onClick={() => handleRejectRequest(incomingRequest._id)} style={{ color: "#dc3545" }}>
+                            <FaUserTimes />
+                            <span>Decline Friend Request</span>
+                          </button>
+                        </>
+                      ) : sentRequest ? (
+                        <button className="dropdown-item" onClick={() => handleCancelRequest(sentRequest._id)} style={{ color: "#e0a800" }}>
+                          <FaUserTimes />
+                          <span>Cancel Sent Request</span>
+                        </button>
+                      ) : (
+                        !isBlocked && (
+                          <button className="dropdown-item" onClick={handleAddFriend} style={{ color: "#007bff" }}>
+                            <FaUserPlus />
+                            <span>Add Friend</span>
+                          </button>
+                        )
+                      )
+                    ) : (
+                      <>
+                        {!isCloseFriend && (
+                          <button className="dropdown-item" onClick={() => handleMakePreference("close_friend")}>
+                            <FaStar style={{ color: "#ffc107" }} />
+                            <span>Mark Close Friend</span>
+                          </button>
+                        )}
+                        <button className="dropdown-item" onClick={handleRemoveFriend} style={{ color: "#dc3545" }}>
+                          <FaUserMinus />
+                          <span>Remove Friend</span>
+                        </button>
+                      </>
+                    )}
+
+                    {isBlocked ? (
+                      <button className="dropdown-item" onClick={handleUnblockUser} style={{ color: "#28a745" }}>
+                        <FaUnlock />
+                        <span>Unblock User</span>
+                      </button>
+                    ) : (
+                      <button className="dropdown-item" onClick={() => handleMakePreference("block")} style={{ color: "#dc3545" }}>
+                        <FaBan />
+                        <span>Block User</span>
+                      </button>
+                    )}
+                  </>
+                )}
+
+                {!active.isGroup && (
+                  <button className="dropdown-item" onClick={() => { dispatch(removeConversation(active._id)); setShowDropdown(false); }}>
+                    <FaUserMinus style={{ color: "#dc3545" }} />
+                    <span style={{ color: "#dc3545" }}>Delete Chat</span>
+                  </button>
+                )}
+
                 {active.isGroup && (
-                  <button
-                    className="dropdown-item"
-                    onClick={handleLeaveGroup}
-                    style={{ color: "#dc3545" }}
-                  >
+                  <button className="dropdown-item" onClick={handleLeaveGroup} style={{ color: "#dc3545" }}>
                     <FiLogOut />
                     <span>Leave Group</span>
                   </button>
@@ -350,90 +612,86 @@ export default function MessagesList() {
       </div>
 
       {showSearch && (
-        <div className="message-search-bar">
-          <input
-            type="text"
-            placeholder="Search messages..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            autoFocus
+        <div className="message-search-bar-modern">
+          <input 
+            type="text" 
+            placeholder="Search messages..." 
+            value={searchQuery} 
+            onChange={(e) => setSearchQuery(e.target.value)} 
+            autoFocus 
           />
-          {searchQuery && (
-            <span className="search-count">
-              {filteredMessages.length} result{filteredMessages.length !== 1 ? "s" : ""}
-            </span>
+          {searchQuery && matchingMessages.length > 0 && (
+            <div className="search-navigation">
+              <span className="search-count">
+                {currentMatchIndex + 1} of {matchingMessages.length}
+              </span>
+              <button className="search-nav-btn" onClick={handlePrevMatch} title="Previous match">▲</button>
+              <button className="search-nav-btn" onClick={handleNextMatch} title="Next match">▼</button>
+            </div>
           )}
-          <FiX
-            className="close-search"
-            onClick={() => {
-              setShowSearch(false);
-              setSearchQuery("");
-            }}
-          />
+          {searchQuery && matchingMessages.length === 0 && (
+            <span className="search-count no-matches">No results</span>
+          )}
+          <FiX className="close-search" onClick={() => { setShowSearch(false); setSearchQuery(""); }} />
         </div>
       )}
 
       <div className="messages-container" ref={messagesRef}>
-        {displayedMessages.map((msg) => {
+        {messages.map((msg, index) => {
           const isMine = msg.sender?._id === currentUser?._id;
           const hasMedia = msg.fileUrl && msg.fileType !== "text";
           const showText = msg.text && !(hasMedia && !msg.text);
 
+          const isCurrentSearchedMatch = searchQuery && matchingMessages[currentMatchIndex]?._id === msg._id;
+
+          // ===== 📆 حساب وطباعة الفواصل الزمنية للأيام =====
+          const currentMsgDate = new Date(msg.createdAt).toDateString();
+          const prevMsgDate = index > 0 ? new Date(messages[index - 1].createdAt).toDateString() : null;
+          
+          // لو أول رسالة في الشات أو تاريخ اليوم اختلف عن المسج اللي قبليها
+          const showDateDivider = currentMsgDate !== prevMsgDate;
+
           return (
-            <div
-              key={msg._id}
-              className={`message ${isMine ? "mine" : "theirs"} ${hasMedia ? "has-media" : ""} ${msg.isSending ? "optimistic-loading" : ""}`}
-            >
-              {!isMine && (
-                <div className="sender">
-                  {msg.sender?.firstName} {msg.sender?.lastName}
-                  {active.isGroup && msg.sender?.username && (
-                    <span className="group-sender-username"> @{msg.sender.username}</span>
-                  )}
+            <div key={msg._id} style={{ display: "contents" }}>
+              {showDateDivider && (
+                <div className="chat-date-divider">
+                  <div className="date-divider-line"></div>
+                  <span className="date-divider-text">{formatDividerDate(msg.createdAt)}</span>
+                  <div className="date-divider-line"></div>
                 </div>
               )}
 
-              {/* عرض الميديا */}
-              {hasMedia && (
-                <MessageMedia
-                  fileUrl={msg.fileUrl}
-                  fileType={msg.fileType}
-                  text={msg.text}
-                />
-              )}
-
-              {/* النص */}
-              {showText && !hasMedia && (
-                <div className="text">{msg.text}</div>
-              )}
-
-              <div className="send-details">
-                <div className={`timestamp ${isMine ? "mine" : "theirs"}`}>
-                  {new Date(msg.createdAt).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </div>
-
-                {isMine && !active.isGroup && (
-                  <div className="seen">
-                    {msg.isSending ? (
-                      <span className="msg-sending-spinner" />
-                    ) : msg.seen ? (
-                      <FaCheckDouble />
-                    ) : (
-                      <FaCheck />
+              <div 
+                id={`msg-${msg._id}`} 
+                className={`message ${isMine ? "mine" : "theirs"} ${hasMedia ? "has-media" : ""} ${msg.isSending ? "optimistic-loading" : ""} ${isCurrentSearchedMatch ? "searched-highlight" : ""}`}
+              >
+                {!isMine && (
+                  <div className="sender">
+                    {msg.sender?.firstName} {msg.sender?.lastName}
+                    {active.isGroup && msg.sender?.username && (
+                      <span className="group-sender-username"> @{msg.sender.username}</span>
                     )}
                   </div>
                 )}
+
+                {hasMedia && <MessageMedia fileUrl={msg.fileUrl} fileType={msg.fileType} text={msg.text} />}
+                {showText && !hasMedia && <div className="text">{msg.text}</div>}
+
+                <div className="send-details">
+                  <div className={`timestamp ${isMine ? "mine" : "theirs"}`}>
+                    {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  </div>
+
+                  {isMine && !active.isGroup && (
+                    <div className="seen">
+                      {msg.isSending ? <span className="msg-sending-spinner" /> : msg.seen ? <FaCheckDouble /> : <FaCheck />}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           );
         })}
-
-        {searchQuery && filteredMessages.length === 0 && (
-          <div className="no-results-messages">No messages found</div>
-        )}
       </div>
     </div>
   );

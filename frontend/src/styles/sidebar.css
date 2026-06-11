@@ -125,7 +125,10 @@
     justify-content: space-between;
     gap: var(--tiny-padding);
     position: relative;
-    height: var(--avatar-size);
+    height: 24px;
+    margin-top: var(--small-padding);
+    position: relative;
+    
 }
 
 .searchBar input{
@@ -134,14 +137,20 @@
     height: var(--full-percent);
 
     padding: var(--medium-padding);
+    
     font-size: 14px;
-    color: var(--color-text-dark);
+    color: var(--color-text-light);
     outline: none;
     transition: all 0.3s ease;
     box-sizing: border-box;
     border-radius: 15px;
-    border: none;
+    border: 0.5px solid var(--color-secondary);
     background: var(--color-input-bg);
+}
+
+.searchBar input:focus {
+    border-color: var(--color-secondary);
+    box-shadow: 0 0 8px rgba(var(--color-secondary-rgb), 0.5);
 }
 
 .searchBar .searchButton {
@@ -156,14 +165,26 @@
     justify-content: center;
     border: none;
     color: var(--color-text-light);
-    font-size: var(--font-size-large);
+    font-size: var(--font-size-base);
+    position:absolute;
+    right: 5px;
+    top: 0px;
+
+    width:40px;
+    transition: all var(--transition-duration) var(--transition-easing);
 
     
 }
 
+.searchButton:hover{
+    background: var(--color-secondary-bg);
+    border: 0.5px solid var(--color-secondary);
+    color:var(--color-secondary);
+}
+
 .clearButton{
     position: absolute;
-    right: 40px;
+    right: 45px;
     background: transparent;
     height: var(--full-percent);
     aspect-ratio: 1/1;
@@ -172,7 +193,7 @@
     align-items: center;
     justify-content: center;
     border: none;
-    color: var(--color-text-dark);
+    color: var(--color-text-light);
     font-size: var(--font-size-large);
 }
 
@@ -228,9 +249,9 @@
     height: var(--chat-item-height);
     cursor: pointer;
     transition: box-shadow var(--transition-duration) var(--transition-easing);
-    color: var(--color-primary);
+    color: var(--color-text-light);
 
-    background: var(--color-msg-bg);
+    background: var(--color-msg-bg-2);
     display: flex;
 
     align-items: space-between;
@@ -261,7 +282,7 @@
 .username-tag ,.bio-tag{
     font-size: var(--font-size-small);
     font-weight: var(--font-weight-medium);
-    color: var(--color-text-placeholder);
+    color: var(--color-text-gray);
     
 }
 
@@ -283,15 +304,15 @@
 .last-message-name{
     font-size: var(--font-size-small);
     font-weight: var(--font-weight-regular);
-    color: var(--color-text-placeholder);
+    color: var(--color-text-gray);
     
 }
 
 .last-message-text{
     font-size: var(--font-size-small);
     font-weight: var(--font-weight-regular);
-    color: var(--color-text-dark);
-    width: 60%;
+    color: var(--color-text-light);
+    width: 65%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -300,15 +321,17 @@
 .last-message-time{
     font-size: var(--font-size-small);
     font-weight: var(--font-weight-light);
-    color: var(--color-text-placeholder);
+    color: var(--color-text-gray);
     text-align: right;
+    
 }
 
 .last-message-seen{
     font-size: var(--font-size-seen);
     font-weight: var(--font-weight-light);
-    color: var(--color-text-placeholder);
+    color: var(--color-text-gray);
     text-align: right;
+    padding-right:2px;
 }
 
 .chatAvatar {
@@ -1049,7 +1072,7 @@
   gap: 6px;
   padding: 6px 14px;
   background-color: #f1f5f9; /* خلفية هادية بدل الأخضر الفاقع */
-  color: #2563eb; /* لون أزرق براند احترافي */
+  color: var(--color-tertiary); /* لون أزرق براند احترافي */
   border: 1px solid #e2e8f0;
   border-radius: 20px;
   font-size: 13px;

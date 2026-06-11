@@ -322,8 +322,12 @@ setCloseFriends(closeFriendsRes.map((u) => (u.targetUser?._id || u._id || u).toS
               const otherUser = conv.participants.find(
                 (p) => p._id !== currentUser?._id
               );
+
+
               
               if (!otherUser || !currentUser) return null;
+
+              const otherUserId = otherUser?._id || otherUser;
 
               const unreadCount =
                 conv.unreadCounts.find(
@@ -334,10 +338,27 @@ setCloseFriends(closeFriendsRes.map((u) => (u.targetUser?._id || u._id || u).toS
 
               // فحص الصداقة
               const currentFriendsList = friends.length > 0 ? friends : localFriends;
-              const isAlreadyFriend = currentFriendsList.some((f) => {
-                const friendId = (f.targetUser?._id || f._id || f).toString();
-                return friendId === otherUser._id.toString();
-              });
+
+const isAlreadyFriend = otherUserId && currentFriendsList.some((f) => {
+  if (!f) return false;
+  
+  // 1. لو الداتا جاية من جدول الـ FriendRequest (الباك إيند الجديد بتاعك)
+  // بنشوف الـ ID بتاع السندر أو الريسيفر، وبنستبعد الـ ID بتاعك أنت (currentUser)
+  if (f.sender && f.receiver) {
+    const senderId = f.sender._id || f.sender;
+    const receiverId = f.receiver._id || f.receiver;
+    
+    const friendId = senderId.toString() === currentUser?._id?.toString() ? receiverId : senderId;
+    return friendId.toString() === otherUserId.toString();
+  }
+  
+  // 2. كود احتياطي (لو الداتا جاية من الـ Preference أو مسطحة كـ String)
+  const friendId = f.targetUser?._id || f._id || f.user?._id || (typeof f === 'string' ? f : null);
+  return friendId && friendId.toString() === otherUserId.toString();
+});
+
+// 🔍 سطر سحري للـ Debugging: افتح الـ Console في المتصفح وشوف النتيجة بنفسك
+console.log(`Checking chat with ${otherUser?.firstName}: otherUserId=${otherUserId}, isAlreadyFriend=${isAlreadyFriend}`, currentFriendsList);
 
               // فحص الطلب المرسل منك (Sent Request)
               const sentRequest = pendingRequests.find((req) => {

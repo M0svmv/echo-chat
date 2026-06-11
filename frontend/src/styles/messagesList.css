@@ -126,7 +126,7 @@
     height: var(--full-percent);
     padding: var(--small-padding);
     overflow-y: auto;
-    background: var(--color-primary); 
+    background: var(--chat-bg); 
     border-radius:0 0 var(--border-radius) var(--border-radius) ;
     animation: pulse-shadow var(--animation-duration) infinite var(--transition-easing);
     border: var(--border-not-hovered);
@@ -168,8 +168,8 @@
 /* رسائل التاني */
 .theirs {
   align-self: flex-start;
-  background: var(--color-msg-bg);
-  color: var(--color-text-dark);
+  background: var(--color-msg-bg-2);
+  color: var(--color-text-light);
   border-bottom-left-radius: 4px;
 }
 
@@ -304,11 +304,107 @@
 }
 
 .msg-file-download:hover {
-  color: var(--primary, #6c00fe);
+  color: var(--color-tertiary);
 }
 
 
 
 @keyframes msg-spin {
   to { transform: rotate(360deg); }
+}
+
+.message-search-bar-modern {
+  display: flex;
+  align-items: center;
+  background: #1e1e2e; /* لون غامق متناسق مع السايبربنك */
+  border-bottom: 2px solid var(--color-tertiary); /* نيون موف */
+  padding: 10px 16px;
+  gap: 12px;
+}
+
+.message-search-bar-modern input {
+  flex: 1;
+  background: var(--color-msg-bg-2);
+  border: 1px solid var(--color-msg-bg-2);
+  color: var(--color-text-light);
+  padding: 8px 12px;
+  border-radius: 6px;
+  outline: none;
+}
+
+/* أزرار التنقل بين المسجات المتطابقة */
+.search-navigation {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.search-count {
+  color: #a6e3a1; /* نيون أخضر */
+  font-size: 0.85rem;
+  font-weight: bold;
+  margin-right: 6px;
+}
+
+.search-count.no-matches {
+  color: #f38ba8; /* أحمر نيون */
+}
+
+.search-nav-btn {
+  background: #313244;
+  border: none;
+  color: #cdd6f4;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: all 0.2s;
+}
+
+.search-nav-btn:hover {
+  background: var(--color-secondary);
+  color: #fff;
+}
+
+.close-search{
+  color:var(--color-text-light);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.close-search:hover{
+  color:var(--color-secondary);
+}
+
+/* 🔥 أنيميشن تظليل نيون قوي للرسالة المتطابقة الحالية */
+
+
+.message.searched-highlight {
+  border: 2px solid var(--color-secondary) !important;
+  animation: neonPulse 2s infinite ease-in-out;
+   /* خلفية نيون شفافة لتبرز وسط الشات */
+  transform: scale(1.02);
+  transition: all 0.3s ease;
+}
+.chat-date-divider{
+  color: var(--color-text-gray);
+  width:var(--full-percent);
+  text-align: center;
+  font-size: var(--font-size-smaller);
+  margin: 10px 0;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  flex-direction: row;
+  
+}
+
+.date-divider-line{
+  width:40%;
+  height: 1px;
+  background: var(--color-text-light);
+  margin: 10px 0;
+
+  opacity: 0.2;
+
 }

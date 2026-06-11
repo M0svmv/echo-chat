@@ -366,7 +366,12 @@ exports.getFriendsSummary = async (req,res) => {
     const[reqSent,reqReceived,friends,closeFriends,blocked] = await Promise.all([
       FriendRequest.find({sender:userId,status:"pending"}).populate("receiver","firstName lastName username avatar"),
       FriendRequest.find({receiver:userId,status:"pending"}).populate("sender","firstName lastName username avatar"),
-      UserPreference.find({user:userId,type:"friend"}).populate("targetUser","firstName lastName username avatar"),
+      FriendRequest.find({
+    $or: [{ sender: userId }, { receiver: userId }],
+    status: "accepted"
+})
+.populate("sender", "firstName lastName username avatar")
+.populate("receiver", "firstName lastName username avatar"),
       UserPreference.find({user:userId,type:"close_friend"}).populate("targetUser","firstName lastName username avatar"),
       UserPreference.find({user:userId,type:"block"}).populate("targetUser","firstName lastName username avatar"),
         

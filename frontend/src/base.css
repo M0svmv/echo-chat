@@ -2,11 +2,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Abhaya+Libre:wght@400;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Changa:wght@200..800&display=swap');
 :root {
+    --chat-bg:url('../assets/chat-bg-dark.png');
+    
+
+
     --color-primary: #181824;
-    --color-secondary: #5865F2;
-    --color-secondary-rgb: 88, 101, 242;
-    --color-tertiary: #5865F2;
-    --color-tertiary-rgb: 88, 101, 242;
+    --color-secondary: #2563eb;
+    --color-secondary-rgb: 37, 99, 235;
+    --color-tertiary: #2563eb;
+    --color-tertiary-rgb: 37, 99, 235;
 
     --color-background: #0b0416;
     --color-text-dark: #000;
@@ -14,9 +18,10 @@
     --color-text-placeholder: #4b5563;
     --color-text-disabled: #444;
     --color-text-gray:#aaa;
-    --color-input-bg: #2a2a2a;
+
+    --color-input-bg: #1e1f2e;
     --color-msg-bg: #f9f9f9;
-    --color-msg-bg-2: #1e293b;
+    --color-msg-bg-2:#1e1f2e;
     --color-error: #ff3d71;
     --color-error-rgb: 255, 61, 113;
     --color-warning: #f59e0b;
@@ -41,7 +46,7 @@
     --border-warning:1.5px solid rgba(var(--color-warning-rgb), var(--color-border-opacity));
     --border-success:1.5px solid rgba(var(--color-success-rgb), var(--color-border-opacity));
 
-    --color-input-bg: #f9f9f9;
+    
     --color-input-border: rgba(108, 0, 255, 0.15);
 
     --card-bg: #181824;
@@ -179,6 +184,11 @@
   }
 }
 
+@keyframes neonPulse {
+  0% { box-shadow: 0 0 4px var(--color-secondary), inset 0 0 4pxvar(--color-secondary); }
+  50% { box-shadow: 0 0 16px var(--color-secondary), inset 0 0 10px var(--color-secondary); border-color: #a6e3a1; }
+  100% { box-shadow: 0 0 4px var(--color-secondary), inset 0 0 4px var(--color-secondary); }
+}
 
 :root.light-theme {
     --color-primary: #f9f8ff;
