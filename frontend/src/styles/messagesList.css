@@ -209,3 +209,106 @@
 .dropdown-item{
   width: var(--full-percent);
 }
+
+
+.message.has-media .text {
+  display: none; 
+}
+
+
+.msg-media-wrapper {
+  max-width: var(--attachment-width);
+  display: flex;
+  flex-direction: column;
+  gap: var(--msg-gap);
+}
+
+.msg-image {
+  width: 100%;
+  max-width: 280px;
+  max-height: 300px;
+  object-fit: cover;
+  border-radius: 10px;
+  display: block;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.msg-image:hover {
+  opacity: 0.9;
+}
+
+/* فيديو */
+.msg-video {
+  width: 100%;
+  max-width: 280px;
+  max-height: 250px;
+  border-radius: 10px;
+  display: block;
+}
+
+/* كابشن للصورة والفيديو */
+.msg-caption {
+  font-size: 0.875rem;
+  
+  margin: 4px 2px 0;
+  line-height: 1.4;
+}
+
+/* صوت */
+.msg-audio-wrapper {
+  min-width: 200px;
+  max-width: 280px;
+}
+
+.msg-audio {
+  width: 100%;
+  height: 36px;
+  border-radius: 8px;
+}
+
+/* ملف */
+.msg-file-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  min-width: 180px;
+  max-width: 280px;
+}
+
+.msg-file-icon {
+  font-size: 1.4rem;
+  color: var(--color-text-gray);
+  flex-shrink: 0;
+}
+
+.msg-file-name {
+  flex: 1;
+  font-size: 0.82rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  
+}
+
+.msg-file-download {
+  color: var(--text-muted, #aaa);
+  text-decoration: none;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  transition: color 0.2s;
+}
+
+.msg-file-download:hover {
+  color: var(--primary, #6c00fe);
+}
+
+
+
+@keyframes msg-spin {
+  to { transform: rotate(360deg); }
+}

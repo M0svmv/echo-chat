@@ -7,6 +7,8 @@ import { IoPaperPlaneOutline } from "react-icons/io5";
 import { FaPaperclip, FaMicrophone } from "react-icons/fa6";
 import { FaStop, FaTimes } from "react-icons/fa";
 
+import CustomAudioPlayer from "./CustomAudioPlayer";
+
 // ===== مكون عرض الـ Preview قبل الإرسال =====
 function AttachmentPreview({ file, onRemove }) {
   const url = URL.createObjectURL(file);
@@ -27,15 +29,37 @@ function AttachmentPreview({ file, onRemove }) {
       )}
 
       {type.startsWith("audio/") && (
-        <audio src={url} className="preview-audio" controls />
+        <CustomAudioPlayer src={url} className="preview-audio" controls />
       )}
 
       {!type.startsWith("image/") && !type.startsWith("video/") && !type.startsWith("audio/") && (
-        <div className="preview-file">
-          <span className="preview-file-icon">📄</span>
-          <span className="preview-file-name">{file.name}</span>
-        </div>
-      )}
+  (() => {
+    // 1. تحويل الاسم لحروف صغيرة عشان نضمن دقة الفحص
+    const fileName = file.name.toLowerCase();
+    
+    // 2. تحديد الإيموجي ونوع الملف بناءً على الامتداد
+    let fileIcon = "📄";
+    let fileClass = "generic";
+
+    if (fileName.endsWith(".pdf")) {
+      fileIcon = "📕"; // إيموجي أحمر للـ PDF
+      fileClass = "pdf";
+    } else if (fileName.endsWith(".docx") || fileName.endsWith(".doc")) {
+      fileIcon = "📘"; // إيموجي أزرق للـ Word
+      fileClass = "word";
+    } else if (fileName.endsWith(".zip") || fileName.endsWith(".rar")) {
+      fileIcon = "📦"; // إيموجي للملفات المضغوطة لو حابة بالمرة
+      fileClass = "archive";
+    }
+
+    return (
+      <div className={`preview-file ${fileClass}-preview`}>
+        <span className="preview-file-icon">{fileIcon}</span>
+        <span className="preview-file-name">{file.name}</span>
+      </div>
+    );
+  })()
+)}
     </div>
   );
 }
@@ -46,21 +70,42 @@ function RecordingIndicator({ duration, onCancel, onSend }) {
   const secs = String(duration % 60).padStart(2, "0");
 
   return (
-    <div className="recording-bar">
-      <div className="recording-pulse" />
-      <span className="recording-label">Recording</span>
-      <span className="recording-timer">{mins}:{secs}</span>
-      <div className="recording-actions">
-        <button className="rec-cancel-btn" onClick={onCancel} title="Cancel Recording">
-          <FaTimes />
-          <span>Cancel</span>
-        </button>
-        <button className="rec-send-btn" onClick={onSend} title="Send Recording">
-          <IoPaperPlaneOutline />
-          <span>Send</span>
-        </button>
-      </div>
+    <div className="message-input-container">
+  <div className="recording-bar">
+  <div className="recording-circle">
+    <div className="recording-pulse" />
+    <span className="recording-label">Recording</span>
+    <span className="recording-timer">{mins}:{secs}</span>
+  </div>  
+    
+    
+    
+
+    <div className="recording-waves">
+      <div className="wave-bar"></div>
+      <div className="wave-bar"></div>
+      <div className="wave-bar"></div>
+      <div className="wave-bar"></div>
+      <div className="wave-bar"></div>
+      <div className="wave-bar"></div>
+      <div className="wave-bar"></div>
+      <div className="wave-bar"></div>
+      <div className="wave-bar"></div>
+      <div className="wave-bar"></div>
+      
     </div>
+
+    
+    <div className="recording-actions">
+      <button className="message-send-button rec-cancel" onClick={onCancel} title="Cancel Recording">
+        <FaTimes />
+      </button>
+      <button className="message-send-button" onClick={onSend} title="Send Recording">
+        <IoPaperPlaneOutline />
+      </button>
+    </div>
+  </div>
+</div>
   );
 }
 
@@ -311,14 +356,18 @@ export default function MessageInput() {
 
   return (
     <div className="message-input-wrapper">
-      {attachedFile && (
+      
+
+      <div className="message-input-container">
+      <div className="message-attach-container">
+        {attachedFile && (
         <AttachmentPreview
           file={attachedFile}
           onRemove={() => setAttachedFile(null)}
         />
       )}
-
-      <div className="message-input-container">
+      </div>
+      <div className="message-inputs-container">
         <button
           className="message-attach-button"
           onClick={() => fileInputRef.current?.click()}
@@ -358,7 +407,7 @@ export default function MessageInput() {
           </button>
         ) : (
           <button
-            className="message-mic-button"
+            className="message-send-button"
             onClick={startRecording}
             title="Record voice message"
             disabled={isSending}
@@ -366,6 +415,7 @@ export default function MessageInput() {
             <FaMicrophone />
           </button>
         )}
+        </div>
       </div>
     </div>
   );

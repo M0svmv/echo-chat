@@ -13,6 +13,7 @@
     --color-text-light: #ffffff;
     --color-text-placeholder: #4b5563;
     --color-text-disabled: #444;
+    --color-text-gray:#aaa;
     --color-input-bg: #2a2a2a;
     --color-msg-bg: #f9f9f9;
     --color-msg-bg-2: #1e293b;
@@ -125,6 +126,9 @@
     --full-percent: 100%;
     --part-percent: 80%;
 
+    --attachment-width: 250px;
+
+    --preview-height: 200px;
 
     --min-width: 350px;
     --max-width: 400px;

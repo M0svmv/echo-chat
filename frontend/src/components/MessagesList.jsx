@@ -17,6 +17,7 @@ import { FiMoreVertical, FiArchive, FiX, FiInfo, FiLogOut } from "react-icons/fi
 
 import NotSelectedChat from "./NotSelectedChat";
 import GroupDetails from "./GroupDetails";
+import CustomAudioPlayer from "./CustomAudioPlayer";
 
 // ===== مكون الأفاتار =====
 const ChatAvatar = memo(({ isGroup, groupImage, groupName, avatar, firstName, lastName }) => {
@@ -83,7 +84,7 @@ const MessageMedia = memo(({ fileUrl, fileType, text }) => {
   if (fileType === "audio") {
     return (
       <div className="msg-audio-wrapper">
-        <audio src={fileUrl} controls className="msg-audio" preload="metadata" />
+        <CustomAudioPlayer src={fileUrl} controls className="msg-audio" preload="metadata" />
       </div>
     );
   }
