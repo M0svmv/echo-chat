@@ -136,13 +136,14 @@
 }
 
 .message {
-  max-width: 60%;
+  max-width: 80%;
   padding: 10px 12px;
   border-radius: 14px;
   font-size: 14px;
   line-height: 1.4;
   word-break: break-word;
   position: relative;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
 }
 
 .message .sender {
@@ -155,6 +156,55 @@
   font-size: var(--font-size-msg);
   font-family: var(--font-family-msg);
   font-family: var(--font-family-arabic);
+}
+
+.message:has(.msg-audio-wrapper) {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important; /* نلغي الـ padding عشان الـ CustomAudioPlayer ياخد مساحته براحته من غير حواف الرسالة القديمة */
+  max-width: 280px; /* ليناسب أقصى عرض حددته للمشغل */
+}
+
+/* إذا كانت الرسالة "ليست لي" (Theirs) وفيها فويس، نترك مسافة علوية لاسم المرسل */
+.message.theirs:has(.msg-audio-wrapper) {
+  padding-top: 4px !important; 
+}
+
+.message:has(.msg-audio-wrapper) .send-details {
+  position: absolute;
+  right: 10px;
+  bottom: 2px;
+  color: var(--color-text-light);
+  font-size: var(--font-size-small);
+  gap: var(--tiny-padding);
+  background-color: transparent !important;
+}
+
+.message:has(.msg-audio-wrapper) .mine,
+.message:has(.msg-audio-wrapper) .theirs {
+ 
+  background-color: transparent !important;
+  color: var(--color-text-light) !important;
+}
+
+.message:has(.msg-audio-wrapper) .seen{
+  background-color: transparent !important;
+  color: var(--color-text-light) !important;
+}
+
+.message:has(.mine) .msg-audio-wrapper .pure-rect-audio{
+   margin-top:3px;
+  background: 
+    linear-gradient(var(--color-tertiary-bg),var(--color-tertiary-bg)), /* طبقة لون علوية خفيفة جداً (هنا مثلاً أسود بنسبة 10%) */
+    var(--color-primary) !important;
+
+  
+}
+
+.message:has(.theirs) .msg-audio-wrapper .pure-rect-audio{
+  background-color: var(--color-msg-bg-2) !important;
+  
 }
 
 /* الرسائل بتاعتي */

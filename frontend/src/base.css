@@ -195,7 +195,7 @@
 }
 
 :root.light-theme {
-    --color-primary: #f7f7f1;
+    --color-primary: #F8F8FF;
     
 
     --color-background: #D6D7D2;
@@ -206,7 +206,7 @@
     --color-text-gray:#646464;
     
     --color-msg-bg: var(--color-msg-bg-2);
-    --color-msg-bg-2: #d5dae0;
+    --color-msg-bg-2: #EAEAEA;
 
     --color-error: #e11d48;
     --color-error-rgb: 225, 29, 72;

@@ -1,77 +1,107 @@
-
-
-/* الحاوية الرئيسية: مستطيل حاد متوهج نيون وبدون ريديوس */
 .pure-rect-audio {
+  background: var(--color-primary);
+  border-radius: 20px;
+  padding: 10px 16px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  background: var(--color-primary)!important; 
-  border: var(--border-not-hovered);
-  padding: var(--medium-padding);
-  border-radius: var(--border-radius-sqr) !important; /* حاد حاد! */
-  width: 100%;
-  transition: all var(--transition-duration) var(--transition-easing);
-  position: relative;
   
+  
+  width: var(--full-percent);
+
+  display: flex;
+  align-items: center;
+  
+  
+  
+  width: var(--full-percent);
+
+  position: relative;
+  box-shadow: 0 1px 8px rgba(var(--color-tertiary-rgb),0.5);
 }
 
-.pure-rect-audio:hover{
-    border:var(--border-hovered);
-}
-
-/* زرار التحكم */
-.pure-audio-btn,.pure-audio-speed-btn {
+.pure-audio-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--border-radius-sqr);
+  color:var(--color-tertiary);
+  border: var(--border-not-hovered);
+  cursor: pointer;
   background: transparent;
-  color: var(--color-text-light);
-  border: none;
-  border-radius: 0px !important;
-  width: 28px;
-  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  flex-shrink: 0;
+  transition: all var(--transition-duration) var(--transition-easing);
   font-size: var(--font-size-large);
 }
 
-.pure-audio-btn:hover,.pure-audio-speed-btn:hover{
-  
+
+.pure-audio-btn:hover {
   color:var(--color-tertiary);
+  border: var(--border-hovered);
+  background-color: var(--color-tertiary-bg);
+  opacity: 1;
 }
 
-/* حاوية شريط التقدم: عبارة عن مسار مستطيل صريح */
-.pure-audio-progress-container {
-  flex-grow: 1;
-  height: 6px; /* السمك */
-  background: var(--color-text-placeholder); /* اللون الباهت للمسار المتبقي */
+.pure-audio-mid {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  
   position: relative;
+  top:10px;
+  left:5px;
+  
+  
+}
+
+.pure-audio-progress-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 3px;
+  height: 36px; 
   cursor: pointer;
-  border-radius: 0px !important;
-  overflow: hidden; /* عشان الشريط الداخلي ما يخرجش برا المستطيل */
+  user-select: none;
+  color: var(--color-text-gray);
 }
 
-/* الشريط الداخلي الذي يملأ المساحة بروعة */
-.pure-audio-progress-bar {
-  height: 100%;
-  background: var(--color-tertiary); /* لون السيان النيون المنور */
-  width: 0%; /* بيزيد بالـ JS لايف */
-  border-radius: 0px !important;
-  transition: width 0.05s linear; /* نعومة حركة التقدم */
+
+  .pure-audio-bar {
+  flex-grow: 1;
+  width: 3px;
+  border-radius: var(--border-radius-sqr);
+  transition: background-color 0.15s ease, opacity 0.15s ease;
 }
 
-/* عداد الوقت البكسل الرقمي */
+.pure-audio-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .pure-audio-time {
-  font-family: 'Jersey 10', Courier, monospace;
-  font-size: 0.8rem;
+  font-size: 11px;
   color: var(--color-text-gray);
   font-variant-numeric: tabular-nums;
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-
-  
-  
   user-select: none;
+}
+
+.pure-audio-speed-btn {
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  border: 0.5px solid var(--border-not-hovered);
+  background: var(--color-primary);
+  color: var(--color-text-gray);
+  border-radius: 6px;
+  padding: 1px 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin:auto;
+}
+
+.pure-audio-speed-btn.active {
+  color: var(--color-tertiary);
+  border-color: var(--color-tertiary);
 }
