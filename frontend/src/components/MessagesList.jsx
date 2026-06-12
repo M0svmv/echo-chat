@@ -7,7 +7,8 @@ import {
   setMessages,
   markMessagesSeen,
   removeConversation,
-  addMessage
+  addMessage,
+  setActiveConversation,
 } from "../features/chat/chatSlice";
 import "../styles/messagesList.css";
 
@@ -17,7 +18,7 @@ import {
 } from "react-icons/fa";
 import { FaPhone, FaRegFilePdf, FaRegFileZipper } from "react-icons/fa6";
 import { FiMoreVertical, FiArchive, FiX, FiInfo, FiLogOut } from "react-icons/fi";
-
+import {MdArrowBack} from 'react-icons/md';
 import NotSelectedChat from "./NotSelectedChat";
 import GroupDetails from "./GroupDetails";
 import CustomAudioPlayer from "./CustomAudioPlayer";
@@ -54,6 +55,8 @@ const ChatAvatar = memo(({ isGroup, groupImage, groupName, avatar, firstName, la
   );
 });
 ChatAvatar.displayName = "ChatAvatar";
+
+
 
 // ===== مكون عرض الميديا =====
 const MessageMedia = memo(({ fileUrl, fileType, text }) => {
@@ -163,6 +166,10 @@ export default function MessagesList() {
       msg.text?.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [messages, searchQuery]);
+
+  const inActivateChat = () => {
+    dispatch(setActiveConversation(null));
+  };
 
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
 
@@ -484,7 +491,9 @@ export default function MessagesList() {
   return (
     <div className="chatContainer">
       <div className="chat-container-header">
+      
         <div className="receiver-details">
+        <button className="back-btn" onClick={() => inActivateChat()}><MdArrowBack /></button>
           <ChatAvatar
             isGroup={active.isGroup}
             groupImage={active.groupImage}

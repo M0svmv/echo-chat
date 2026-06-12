@@ -1,5 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+
+
+
 const initialState = {
   conversations: [],
   messages: [],
@@ -16,10 +19,12 @@ const chatSlice = createSlice({
     },
     setConversations: (state, action) => {
       state.conversations = action.payload;
+      
     },
 
     setActiveConversation: (state, action) => {
       state.activeConversation = action.payload;
+      
     },
 
     setMessages: (state, action) => {
@@ -153,6 +158,7 @@ const chatSlice = createSlice({
 export const {
   setConversations,
   setActiveConversation,
+  activeConversation,
   markMessagesSeen,
   updateConversation,
   removeConversation,

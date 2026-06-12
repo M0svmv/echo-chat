@@ -9,9 +9,9 @@
   border: var(--border-not-hovered);
   padding: var(--medium-padding);
   border-radius: var(--border-radius-sqr) !important; /* حاد حاد! */
-  min-width: 250px;
-  max-width: 290px;
+  width: 100%;
   transition: all var(--transition-duration) var(--transition-easing);
+  position: relative;
   
 }
 
@@ -64,6 +64,14 @@
 .pure-audio-time {
   font-family: 'Jersey 10', Courier, monospace;
   font-size: 0.8rem;
-  color: #a6adc8;
+  color: var(--color-text-gray);
   font-variant-numeric: tabular-nums;
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+
+  
+  
+  user-select: none;
 }

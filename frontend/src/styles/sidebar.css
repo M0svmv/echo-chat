@@ -8,7 +8,7 @@
     gap: var(--small-padding);
     max-width: var(--sidebar-width-max);
     min-width: var(--sidebar-width-min);
-        position: relative;
+    position: relative;
     
     
 }
@@ -72,8 +72,8 @@
 }
 
 .back-btn{
-    position: absolute;
-    right: var(--extra-large-padding);
+    
+    
     width: var(--btn-size);
     aspect-ratio: 1/1;
     display: flex;

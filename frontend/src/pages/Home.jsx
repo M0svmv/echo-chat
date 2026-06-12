@@ -17,6 +17,7 @@ import { Outlet } from "react-router-dom";
 export default function Home() {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
+  const activeConversation = useSelector((state) => state.chat.activeConversation);
 
   useEffect(() => {
     if (!user) return;

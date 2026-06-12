@@ -11,3 +11,60 @@
 
     background: var(--system-bg);
 }
+/* ==========================================================================
+   💻 وضع الديسكتوب الافتراضي (Desktop Layout - الشاشات الكبيرة)
+   ========================================================================== */
+
+
+/* ==========================================================================
+   📱 ريسبونسيف الموبايل (Mobile Layout - الشاشات الأصغر من 768px)
+   ========================================================================== */
+@media (max-width: 768px) {
+
+    .ui-layout{
+      
+      
+      overflow: hidden;
+
+      padding: var(--x-small-padding);
+      
+      
+     
+    }
+  
+
+  .sidebar{
+    width: 100dvw;
+    max-width: 100dvw;
+    
+    
+    
+  }
+
+  .navbar.hide-navbar{
+    display: none;
+  }
+
+
+
+  .chatWindow{
+    display:none;
+  }
+
+  .chatWindow.active-chat{
+    display: flex;
+
+    padding: 0!important;
+    margin: 0!important;
+    overflow: hidden;
+    width: 100dvw;
+    max-width: 100dvw;
+    
+  }
+
+  .sidebar.active-chat{
+    display: none;
+  }
+  
+  
+}

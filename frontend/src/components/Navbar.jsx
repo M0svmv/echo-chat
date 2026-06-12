@@ -20,6 +20,7 @@ export default function Navbar() {
   const navigate = useNavigate();
 
   const currentUser = useSelector((state) => state.auth.user);
+  const isMenuOpen = useSelector((state) => state.ui.isMenuOpen);
 
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
@@ -93,7 +94,7 @@ const [logo,setLogo] = useState(()=>{
   }, []);
 
   return (
-    <div className="navbar">
+    <div className={`navbar ${isMenuOpen ? "hide-navbar" : ""}`}>
       <div className="navbar-uls">
         <ul className="navbar-links-list">
           <li className="nav-item">
