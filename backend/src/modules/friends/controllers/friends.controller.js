@@ -11,41 +11,52 @@ exports.getAvailableUsers = async (req, res) => {
     const userId = req.user._id;
     const { query = "" } = req.query;
 
-    // 1. نجيب البلوكات وطلبات الصداقة فقط (قمنا بإزالة الـ Conversation لتسمح بظهور من تبادلت معهم المحادثات)
+    // 1. نجيب البلوكات وطلبات الصداقة فقط
     const [preferences, friendRequests] = await Promise.all([
       UserPreference.find({ $or: [{ user: userId }, { targetUser: userId }], type: "block" }),
       FriendRequest.find({ $or: [{ sender: userId }, { receiver: userId }] })
     ]);
 
     // 2. استخراج المعرفات (IDs) التي يجب حجبها من البحث تماماً
-    
-    // استخراج الأشخاص المحظورين (سواء قمت بحظرهم أو قاموا بحظرك)
     const blockedUserIds = preferences.map(pref => 
       pref.user.toString() === userId.toString() ? pref.targetUser.toString() : pref.user.toString()
     );
 
-    // استخراج الأشخاص الذين بينك وبينهم طلب صداقة (سواء مقبول، معلق، إلخ)
     const relatedUserIds = friendRequests.map(req => 
       req.sender.toString() === userId.toString() ? req.receiver.toString() : req.sender.toString()
     );
 
-    // دمج الـ IDs المستبعدة (نفسك + المحظورين + أطراف طلبات الصداقة) في مصفوفة واحدة بدون تكرار
     const excludedUserIds = Array.from(new Set([
       userId.toString(), 
       ...blockedUserIds, 
       ...relatedUserIds
     ]));
 
-    // 3. بناء فلتر البحث النصي
-    const searchFilter = query
-      ? {
+    // ==========================================================================
+    // 🛠️ 3. بناء فلتر البحث الذكي المطور (يدعم البحث المخصص بالـ @)
+    // ==========================================================================
+    let searchFilter = {};
+
+    if (query) {
+      const trimmedQuery = query.trim();
+
+      // 🔍 الفحص التكتيكي: لو بيبدأ بـ @، ابحث بالـ username فقط
+      if (trimmedQuery.startsWith("@")) {
+        const usernameQuery = trimmedQuery.slice(1); // بنشيل علامة الـ @ من النص عشان السيرش يظبط
+        searchFilter = {
+          username: { $regex: usernameQuery, $options: "i" }
+        };
+      } else {
+        // 💬 السيرش العادي الافتراضي بتاعك لو مفيش @
+        searchFilter = {
           $or: [
-            { firstName: { $regex: query, $options: "i" } },
-            { lastName: { $regex: query, $options: "i" } },
-            { username: { $regex: query, $options: "i" } },
+            { firstName: { $regex: trimmedQuery, $options: "i" } },
+            { lastName: { $regex: trimmedQuery, $options: "i" } },
+            { username: { $regex: trimmedQuery, $options: "i" } },
           ],
-        }
-      : {};
+        };
+      }
+    }
 
     // 4. الـ Query النهائي لجلب المستخدمين المتاحين
     const availableUsers = await User.find({

@@ -68,7 +68,7 @@
     height: var(--avatar-size);
     border-radius: var(--border-radius-sqr);
     background: var(--color-secondary);
-    color: var(--color-text-light);
+    color: var(--color-icons);
     font-size: var(--font-size-larger);
     animation: pulse-shadow var(--animation-duration) infinite var(--transition-easing);
     
@@ -152,7 +152,7 @@
 }
 
 .message .text {
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-msg);
   font-family: var(--font-family-msg);
   font-family: var(--font-family-arabic);
 }
@@ -187,7 +187,7 @@
     display: flex;
     gap: var(--tiny-padding);
     align-items: center;
-    color: var(--color-text-light);
+    color: var(--color-icons);
     font-size: var(--msg-detail-font);
 }
 

@@ -107,7 +107,7 @@
 
 .message-send-button {
     background-color: var(--color-tertiary);
-    color: var(--color-text-light);
+    color: var(--color-icons);
     border: none;
     border-radius: var(--border-radius-sqr);
     width: var(--avatar-size);
@@ -125,7 +125,9 @@
   
   .message-send-button:hover {
     background-color: var(--color-secondary-hover);
-    border: var(--border-hovered)
+    border: var(--border-hovered);
+    color: var(--color-tertiary);
+  
 
 }
 

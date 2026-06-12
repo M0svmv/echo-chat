@@ -164,7 +164,7 @@
     align-items: center;
     justify-content: center;
     border: none;
-    color: var(--color-text-light);
+    color: var(--color-icons);
     font-size: var(--font-size-base);
     position:absolute;
     right: 5px;
@@ -319,7 +319,7 @@
 }
 
 .last-message-time{
-    font-size: var(--font-size-small);
+    font-size: 12px;
     font-weight: var(--font-weight-light);
     color: var(--color-text-gray);
     text-align: right;
@@ -331,7 +331,7 @@
     font-weight: var(--font-weight-light);
     color: var(--color-text-gray);
     text-align: right;
-    padding-right:2px;
+    padding-right:1px;
 }
 
 .chatAvatar {
@@ -344,7 +344,7 @@
     justify-content: center;
     font-size: var(--font-size-larger);
     font-weight: var(--font-weight-medium);
-    color: var(--color-text-light);
+    color: var(--color-icons);
     overflow: hidden;
     
 }
@@ -984,17 +984,13 @@
   transition: background-color 0.2s ease;
 }
 
-.dropdown-item:hover:not(:disabled) {
-  background-color: #f8f9fa;
-}
+
 
 .dropdown-item.item-remove {
   color: #dc3545;
 }
 
-.dropdown-item.item-remove:hover:not(:disabled) {
-  background-color: #fff5f5;
-}
+
 
 .dropdown-divider {
   height: 1px;

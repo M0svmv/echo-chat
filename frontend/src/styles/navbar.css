@@ -115,7 +115,7 @@ ul{
     justify-content: center;
     font-size: var(--font-size-larger);
     font-weight: var(--font-weight-medium);
-    color: var(--color-text-light);
+    color: var(--color-icons);
     overflow: hidden;
     border: 2.5px solid rgba(var(--color-tertiary-rgb), 0.3);
     transition:all var(--transition-duration) var(--transition-easing);
@@ -187,7 +187,7 @@ ul{
   border: none;
   background: transparent;
 
-  color: white;
+  color: var(--color-text-light);
 
   text-align: left;
   display:flex;
@@ -201,6 +201,6 @@ ul{
 
 .dropdown-menu button:hover, .dropdown-menu a:hover{
   
-    border-left: 4px solid var(--color-secondary);
-  background: rgba(255, 255, 255, 0.08);
+    
+  background: var(--dropdown-hover);
 }

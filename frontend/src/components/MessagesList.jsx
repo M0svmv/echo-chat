@@ -665,7 +665,7 @@ export default function MessagesList() {
                 id={`msg-${msg._id}`} 
                 className={`message ${isMine ? "mine" : "theirs"} ${hasMedia ? "has-media" : ""} ${msg.isSending ? "optimistic-loading" : ""} ${isCurrentSearchedMatch ? "searched-highlight" : ""}`}
               >
-                {!isMine && (
+                {!isMine && active.isGroup && (
                   <div className="sender">
                     {msg.sender?.firstName} {msg.sender?.lastName}
                     {active.isGroup && msg.sender?.username && (

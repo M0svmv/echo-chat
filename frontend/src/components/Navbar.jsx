@@ -27,8 +27,16 @@ export default function Navbar() {
   const userMenuRef = useRef(null);
   const settingsMenuRef = useRef(null);
 
-  const [theme, setTheme] = useState("dark");
+  
 
+  const [theme, setTheme] = useState(() => {
+  // لو متسيف لايت خليه لايت، غير كدة ديفولت دارك نيون فخم
+  return localStorage.getItem("theme") || "dark";
+});
+ 
+const [logo,setLogo] = useState(()=>{
+  return localStorage.getItem("logo")
+})
 
   const handleLogout = async () => {
     
@@ -43,12 +51,19 @@ export default function Navbar() {
   };
 
     useEffect(() => {
-      if (theme === "light") {
-        document.documentElement.classList.add("light-theme");
-      } else {
-        document.documentElement.classList.remove("light-theme");
-      }
-    }, [theme]);
+  // بنشيك على الـ State الحالية مباشرة بدل الـ localStorage
+  if (theme === "light") {
+    document.documentElement.classList.add("light-theme");
+    localStorage.setItem("theme", "light");
+    localStorage.setItem("logo","/assets/echoLogoLight.png");
+    setLogo("/assets/echoLogoLight.png");
+  } else {
+    document.documentElement.classList.remove("light-theme");
+    localStorage.setItem("theme", "dark");
+    localStorage.setItem("logo","/assets/echoLogo.png");
+    setLogo("/assets/echoLogo.png");
+  }
+}, [theme]); // الـ Dependency هنا بقت شغالة صح 100% لأنها بتراقب الـ State
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -84,7 +99,7 @@ export default function Navbar() {
           <li className="nav-item">
             <img
               className="logo"
-              src="/assets/echoLogo.png"
+              src={logo}
               alt="Logo"
             />
           </li>
@@ -175,7 +190,7 @@ export default function Navbar() {
               <NavLink to="/profile"> <TbUser /> Profile</NavLink>
               <NavLink to="/updateProfile"><TbUserEdit  /> Edit Profile</NavLink>
               <NavLink to="/friends"><TbUsers /> Friends</NavLink>
-              <button onClick={handleLogout}> <TbLogout /> Logout</button>
+              <button className="dropdown-item item-remove" onClick={handleLogout}> <TbLogout /> Logout</button>
             </div>
           )}
         </li>

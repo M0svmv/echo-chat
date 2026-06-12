@@ -2,7 +2,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Abhaya+Libre:wght@400;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Changa:wght@200..800&display=swap');
 :root {
-    --chat-bg:url('../assets/chat-bg-dark.png');
+    
     
 
 
@@ -18,6 +18,8 @@
     --color-text-placeholder: #4b5563;
     --color-text-disabled: #444;
     --color-text-gray:#aaa;
+
+    --color-icons:#ffffff;
 
     --color-input-bg: #1e1f2e;
     --color-msg-bg: #f9f9f9;
@@ -46,13 +48,14 @@
     --border-warning:1.5px solid rgba(var(--color-warning-rgb), var(--color-border-opacity));
     --border-success:1.5px solid rgba(var(--color-success-rgb), var(--color-border-opacity));
 
-    
+    --dropdown-hover:rgba(255, 255, 255, 0.08);
     --color-input-border: rgba(108, 0, 255, 0.15);
 
     --card-bg: #181824;
-
+    --logo-png:url('../assets/echoLogo.png');
     --login-bg: url('../assets/login-bg.png') no-repeat center center fixed;
     --system-bg: url('../assets/login-bg.png') no-repeat center center fixed;
+    --chat-bg:url('../assets/chat-bg-dark.png');
 
     --logo-box: 60px;
 
@@ -75,6 +78,7 @@
     --font-size-h3: 2.5rem;
     --font-size-small: 0.875rem;
     --font-size-message: 0.95rem;
+    --font-size-msg: 0.9rem;
     --font-size-seen: 10px;
 
     --font-weight-light: 300;
@@ -191,18 +195,18 @@
 }
 
 :root.light-theme {
-    --color-primary: #f9f8ff;
-    --color-secondary: #6c00fe;
-    --color-secondary-rgb: 108, 0, 254;
-    --color-tertiary: #5865F2;
-    --color-tertiary-rgb: 88, 101, 242;
+    --color-primary: #f7f7f1;
+    
 
-    --color-background: #f4f0ff;
+    --color-background: #D6D7D2;
     --color-text-dark: #1a0a2e;
     --color-text-light: #1a0a2e;
-    --color-text-placeholder: #a89fc5;
-    --color-msg-bg: #f0ecff;
-    --color-msg-bg-2: #ede5ff;
+    --color-text-placeholder: #4b5563;
+    --color-text-disabled: #444;
+    --color-text-gray:#646464;
+    
+    --color-msg-bg: var(--color-msg-bg-2);
+    --color-msg-bg-2: #d5dae0;
 
     --color-error: #e11d48;
     --color-error-rgb: 225, 29, 72;
@@ -211,10 +215,14 @@
     --color-success: #059669;
     --color-success-rgb: 5, 150, 105;
 
-    --color-input-bg: #e8e0f8;
+    --dropdown-hover: rgba(var(--color-tertiary-rgb), 0.5);
+
+    --chat-bg:url('../assets/chat-bg-light.png');
+
+    --color-input-bg: var(--color-msg-bg-2);
     --color-input-border: rgba(108, 0, 255, 0.2);
 
-    --card-bg: #ffffff;
+    --card-bg: var(--color-primary);
 
     --box-shadow: 2px 2px 30px rgba(var(--color-secondary-rgb), 0.12);
 
