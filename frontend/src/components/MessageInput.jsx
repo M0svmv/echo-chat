@@ -206,11 +206,11 @@ export default function MessageInput() {
       if (textareaRef.current) textareaRef.current.style.height = "auto";
 
       try {
-        const response = await api.put(`/messages/edit/${targetId}`, { text: currentText });
+        const response = await api.put(`/messages/edit/${targetId}`, { newText: currentText });
         dispatch(updateEditedMessage({
           messageId: targetId,
           conversationId: activeConversation._id,
-          text: response.data.text,
+          newText: response.data.text,
           isEdited: true
         }));
         setBlockError("");
