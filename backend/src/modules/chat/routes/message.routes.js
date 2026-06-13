@@ -14,4 +14,7 @@ router.post("/", protect,chatUpload.single("file") , sendMessage);
 
 router.get("/:conversationId", protect, getMessages);
 
+router.put("/edit/:messageId", protect, messageController.editMessage);
+router.post("/react/:messageId", protect, messageController.toggleReaction);
+
 module.exports = router;

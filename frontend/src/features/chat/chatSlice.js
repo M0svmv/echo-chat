@@ -8,6 +8,8 @@ const initialState = {
   messages: [],
   friends: [],  
   activeConversation: null,
+  replyingTo: null,
+editingMessage: null,
 };
 
 const chatSlice = createSlice({
@@ -95,6 +97,45 @@ const chatSlice = createSlice({
       }
     },
 
+    updateEditedMessage:(state,action) => {
+      const {messageId,conversationId, newText, isEdited} = action.payload;
+
+      const msgIndex = state.messages.findIndex((m) => m._id === messageId);
+      if (msgIndex !== -1){
+
+        state.messages[msgIndex].text = newText;
+        state.messages[msgIndex].isEdited = isEdited;
+
+      }
+
+      const convIndex = state.conversations.findIndex((c)=> c._id === conversationId);
+      if(convIndex !== -1 && state.conversations[convIndex].lastMessage?._id === messageId){
+        state.conversations[convIndex].lastMessage.text = newText;
+        state.conversations[convIndex].lastMessage.isEdited = isEdited;
+      }
+    },
+
+    updateMessageReactions: (state, action) => {
+      const {messageId,conversationId, reactions} = action.payload;
+
+      const msgIndex = state.messages.findIndex((m) => m._id === messageId);
+      if (msgIndex !== -1){
+        state.messages[msgIndex].reactions = reactions;
+      }
+
+      const convIndex = state.conversations.findIndex((c)=> c._id === conversationId);
+      if(convIndex !== -1 && state.conversations[convIndex].lastMessage?._id === messageId){
+        state.conversations[convIndex].lastMessage.reactions = reactions;
+      }
+    },
+
+    setReplyingTo: (state, action) => {
+  state.replyingTo = action.payload;
+},
+setEditingMessage: (state, action) => {
+  state.editingMessage = action.payload;
+},
+
     markMessagesSeen: (state, action) => {
       const { conversationId, userId } = action.payload;
       state.messages = state.messages.map((msg) =>
@@ -166,6 +207,10 @@ export const {
   setFriends,
   setMessages,
   addMessage,
+  updateEditedMessage,
+  updateMessageReactions,
+  setReplyingTo,
+  setEditingMessage
 } = chatSlice.actions;
 
 export default chatSlice.reducer;

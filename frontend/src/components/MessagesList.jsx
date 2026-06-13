@@ -9,19 +9,26 @@ import {
   removeConversation,
   addMessage,
   setActiveConversation,
+  updateEditedMessage,
+  updateMessageReactions,
+  setReplyingTo,       // 👈 استخدام الريدكس مباشرة
+  setEditingMessage    // 👈 استخدام الريدكس مباشرة
 } from "../features/chat/chatSlice";
 import "../styles/messagesList.css";
 
 import { 
   FaSearch, FaCheck, FaCheckDouble, FaVideo, FaFileAlt, FaDownload,
-  FaStar, FaBan, FaUserMinus, FaUserPlus, FaUserTimes, FaUnlock, FaUserCheck
+  FaStar, FaBan, FaUserMinus, FaUserPlus, FaUserTimes, FaUnlock, FaUserCheck,
+  FaReply, FaPen, FaRegSmile
 } from "react-icons/fa";
 import { FaPhone, FaRegFilePdf, FaRegFileZipper } from "react-icons/fa6";
 import { FiMoreVertical, FiArchive, FiX, FiInfo, FiLogOut } from "react-icons/fi";
-import {MdArrowBack} from 'react-icons/md';
+import { MdArrowBack as BackIcon } from 'react-icons/md';
 import NotSelectedChat from "./NotSelectedChat";
 import GroupDetails from "./GroupDetails";
 import CustomAudioPlayer from "./CustomAudioPlayer";
+
+const EMOJI_LIST = ["❤️", "👍", "😂", "😮", "😢", "🙏"];
 
 // ===== مكون الأفاتار =====
 const ChatAvatar = memo(({ isGroup, groupImage, groupName, avatar, firstName, lastName }) => {
@@ -56,8 +63,6 @@ const ChatAvatar = memo(({ isGroup, groupImage, groupName, avatar, firstName, la
 });
 ChatAvatar.displayName = "ChatAvatar";
 
-
-
 // ===== مكون عرض الميديا =====
 const MessageMedia = memo(({ fileUrl, fileType, text }) => {
   if (!fileUrl || fileType === "text") return null;
@@ -90,7 +95,6 @@ const MessageMedia = memo(({ fileUrl, fileType, text }) => {
     );
   }
 
-  // ===== 📄 معالجة الملفات والمستندات =====
   const fileName = fileUrl.split("/").pop().split("?")[0] || "Download File";
   const lowerFileName = fileName.toLowerCase();
 
@@ -126,7 +130,7 @@ const MessageMedia = memo(({ fileUrl, fileType, text }) => {
 });
 MessageMedia.displayName = "MessageMedia";
 
-// ===== الكومبوننت الرئيسي =====
+
 export default function MessagesList() {
   const dispatch = useDispatch();
 
@@ -148,6 +152,7 @@ export default function MessagesList() {
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [viewingGroupDetails, setViewingGroupDetails] = useState(null);
+  const [activeReactionMenu, setActiveReactionMenu] = useState(null); 
 
   const [pendingRequests, setPendingRequests] = useState([]);
   const [receivedRequests, setReceivedRequests] = useState([]);
@@ -157,9 +162,6 @@ export default function MessagesList() {
 
   const isArchived = active?.archivedBy?.includes(currentUser?._id);
 
-  // ==========================================================================
-  // 🔍 لوجيك السيرش المتطور
-  // ==========================================================================
   const matchingMessages = useMemo(() => {
     if (!searchQuery.trim()) return [];
     return messages.filter((msg) =>
@@ -177,7 +179,6 @@ export default function MessagesList() {
     if (matchingMessages.length > 0) {
       const targetMsgId = matchingMessages[currentMatchIndex]?._id;
       const targetElement = document.getElementById(`msg-${targetMsgId}`);
-      
       if (targetElement) {
         targetElement.scrollIntoView({ behavior: "smooth", block: "center" });
       }
@@ -196,9 +197,6 @@ export default function MessagesList() {
     setCurrentMatchIndex((prev) => (prev - 1 + matchingMessages.length) % matchingMessages.length);
   };
 
-  // ==========================================================================
-  // 🗓️ دالة تنسيق الفواصل الزمنية (اليوم - الأمس - التاريخ الكامل)
-  // ==========================================================================
   const formatDividerDate = (dateString) => {
     const messageDate = new Date(dateString);
     const today = new Date();
@@ -210,14 +208,24 @@ export default function MessagesList() {
     } else if (messageDate.toDateString() === yesterday.toDateString()) {
       return "Yesterday";
     } else {
-      // إرجاع التاريخ بصيغة مقروءة وممتازة (مثال: June 12, 2026)
       return messageDate.toLocaleDateString([], { month: "long", day: "numeric", year: "numeric" });
     }
   };
 
-  // ==========================================================================
-  // 🔥 لوجيك إدارة الأصدقاء والعلاقات
-  // ==========================================================================
+  const handleEmojiReact = async (messageId, emoji) => {
+    setActiveReactionMenu(null);
+    try {
+      const response = await api.post(`/messages/react/${messageId}`, { emoji });
+      dispatch(updateMessageReactions({
+        messageId,
+        conversationId: active._id,
+        reactions: response.data.reactions
+      }));
+    } catch (error) {
+      console.error("Failed to react with emoji:", error);
+    }
+  };
+
   const handleArchive = () => {
     socket.emit("archiveConversation", {
       conversationId: active._id,
@@ -342,9 +350,6 @@ export default function MessagesList() {
     }
   };
 
-  // ==========================================================================
-  // 🔄 تأثيرات جلب البيانات والـ Event Listeners
-  // ==========================================================================
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -406,13 +411,31 @@ export default function MessagesList() {
 
   useEffect(() => {
     if (!active) return;
+    
     socket.on("newMessage", (msg) => {
       if (msg.conversationId === active._id) {
         dispatch(addMessage({ message: msg, currentUserId: currentUser?._id }));
         socket.emit("markAsSeen", { conversationId: active._id, userId: currentUser?._id });
       }
     });
-    return () => socket.off("newMessage");
+
+    socket.on("messageEdited", (data) => {
+      if (data.conversationId === active._id) {
+        dispatch(updateEditedMessage(data));
+      }
+    });
+
+    socket.on("messageReactionUpdated", (data) => {
+      if (data.conversationId === active._id) {
+        dispatch(updateMessageReactions(data));
+      }
+    });
+
+    return () => {
+      socket.off("newMessage");
+      socket.off("messageEdited");
+      socket.off("messageReactionUpdated");
+    };
   }, [active?._id, currentUser?._id, dispatch]);
 
   useEffect(() => {
@@ -469,15 +492,12 @@ export default function MessagesList() {
 
   const isAlreadyFriend = receiver && currentFriendsList.some((f) => {
     if (!f) return false;
-    
     if (f.sender && f.receiver) {
       const senderId = f.sender._id || f.sender;
       const receiverId = f.receiver._id || f.receiver;
-      
       const friendId = senderId.toString() === currentUser?._id?.toString() ? receiverId : senderId;
       return friendId.toString() === receiver._id.toString();
     }
-    
     const friendId = f.targetUser?._id || f._id || f.user?._id || (typeof f === 'string' ? f : null);
     return friendId && friendId.toString() === receiver._id.toString();
   });
@@ -491,9 +511,8 @@ export default function MessagesList() {
   return (
     <div className="chatContainer">
       <div className="chat-container-header">
-      
         <div className="receiver-details">
-        <button className="back-btn" onClick={() => inActivateChat()}><MdArrowBack /></button>
+          <button className="back-btn" onClick={() => inActivateChat()}><BackIcon /></button>
           <ChatAvatar
             isGroup={active.isGroup}
             groupImage={active.groupImage}
@@ -503,11 +522,7 @@ export default function MessagesList() {
             lastName={receiver?.lastName}
           />
           <div className="receiver">
-            {active.isGroup
-              ? active.groupName
-              : receiver
-                ? `${receiver.firstName} ${receiver.lastName}`
-                : "Unknown User"}
+            {active.isGroup ? active.groupName : receiver ? `${receiver.firstName} ${receiver.lastName}` : "Unknown User"}
             {!active.isGroup && isCloseFriend && (
               <FaStar style={{ color: "#ffc107", marginLeft: "6px", fontSize: "0.85rem" }} title="Close Friend" />
             )}
@@ -538,11 +553,7 @@ export default function MessagesList() {
 
                 <button className="dropdown-item" onClick={handleArchive}>
                   <FiArchive />
-                  <span>
-                    {isArchived
-                      ? (active.isGroup ? "Unarchive Group" : "Unarchive Chat")
-                      : (active.isGroup ? "Archive Group" : "Archive Chat")}
-                  </span>
+                  <span>{isArchived ? (active.isGroup ? "Unarchive Group" : "Unarchive Chat") : (active.isGroup ? "Archive Group" : "Archive Chat")}</span>
                 </button>
 
                 {!active.isGroup && receiver && (
@@ -551,24 +562,20 @@ export default function MessagesList() {
                       incomingRequest ? (
                         <>
                           <button className="dropdown-item" onClick={() => handleAcceptRequest(incomingRequest._id)} style={{ color: "#28a745" }}>
-                            <FaUserCheck />
-                            <span>Accept Friend Request</span>
+                            <FaUserCheck /><span>Accept Friend Request</span>
                           </button>
                           <button className="dropdown-item" onClick={() => handleRejectRequest(incomingRequest._id)} style={{ color: "#dc3545" }}>
-                            <FaUserTimes />
-                            <span>Decline Friend Request</span>
+                            <FaUserTimes /><span>Decline Friend Request</span>
                           </button>
                         </>
                       ) : sentRequest ? (
                         <button className="dropdown-item" onClick={() => handleCancelRequest(sentRequest._id)} style={{ color: "#e0a800" }}>
-                          <FaUserTimes />
-                          <span>Cancel Sent Request</span>
+                          <FaUserTimes /><span>Cancel Sent Request</span>
                         </button>
                       ) : (
                         !isBlocked && (
                           <button className="dropdown-item" onClick={handleAddFriend} style={{ color: "#007bff" }}>
-                            <FaUserPlus />
-                            <span>Add Friend</span>
+                            <FaUserPlus /><span>Add Friend</span>
                           </button>
                         )
                       )
@@ -576,26 +583,22 @@ export default function MessagesList() {
                       <>
                         {!isCloseFriend && (
                           <button className="dropdown-item" onClick={() => handleMakePreference("close_friend")}>
-                            <FaStar style={{ color: "#ffc107" }} />
-                            <span>Mark Close Friend</span>
+                            <FaStar style={{ color: "#ffc107" }} /><span>Mark Close Friend</span>
                           </button>
                         )}
                         <button className="dropdown-item" onClick={handleRemoveFriend} style={{ color: "#dc3545" }}>
-                          <FaUserMinus />
-                          <span>Remove Friend</span>
+                          <FaUserMinus /><span>Remove Friend</span>
                         </button>
                       </>
                     )}
 
                     {isBlocked ? (
                       <button className="dropdown-item" onClick={handleUnblockUser} style={{ color: "#28a745" }}>
-                        <FaUnlock />
-                        <span>Unblock User</span>
+                        <FaUnlock /><span>Unblock User</span>
                       </button>
                     ) : (
                       <button className="dropdown-item" onClick={() => handleMakePreference("block")} style={{ color: "#dc3545" }}>
-                        <FaBan />
-                        <span>Block User</span>
+                        <FaBan /><span>Block User</span>
                       </button>
                     )}
                   </>
@@ -603,15 +606,13 @@ export default function MessagesList() {
 
                 {!active.isGroup && (
                   <button className="dropdown-item" onClick={() => { dispatch(removeConversation(active._id)); setShowDropdown(false); }}>
-                    <FaUserMinus style={{ color: "#dc3545" }} />
-                    <span style={{ color: "#dc3545" }}>Delete Chat</span>
+                    <FaUserMinus style={{ color: "#dc3545" }} /><span style={{ color: "#dc3545" }}>Delete Chat</span>
                   </button>
                 )}
 
                 {active.isGroup && (
                   <button className="dropdown-item" onClick={handleLeaveGroup} style={{ color: "#dc3545" }}>
-                    <FiLogOut />
-                    <span>Leave Group</span>
+                    <FiLogOut /><span>Leave Group</span>
                   </button>
                 )}
               </div>
@@ -631,16 +632,12 @@ export default function MessagesList() {
           />
           {searchQuery && matchingMessages.length > 0 && (
             <div className="search-navigation">
-              <span className="search-count">
-                {currentMatchIndex + 1} of {matchingMessages.length}
-              </span>
-              <button className="search-nav-btn" onClick={handlePrevMatch} title="Previous match">▲</button>
-              <button className="search-nav-btn" onClick={handleNextMatch} title="Next match">▼</button>
+              <span className="search-count">{currentMatchIndex + 1} of {matchingMessages.length}</span>
+              <button className="search-nav-btn" onClick={handlePrevMatch}>▲</button>
+              <button className="search-nav-btn" onClick={handleNextMatch}>▼</button>
             </div>
           )}
-          {searchQuery && matchingMessages.length === 0 && (
-            <span className="search-count no-matches">No results</span>
-          )}
+          {searchQuery && matchingMessages.length === 0 && <span className="search-count no-matches">No results</span>}
           <FiX className="close-search" onClick={() => { setShowSearch(false); setSearchQuery(""); }} />
         </div>
       )}
@@ -652,12 +649,8 @@ export default function MessagesList() {
           const showText = msg.text && !(hasMedia && !msg.text);
 
           const isCurrentSearchedMatch = searchQuery && matchingMessages[currentMatchIndex]?._id === msg._id;
-
-          // ===== 📆 حساب وطباعة الفواصل الزمنية للأيام =====
           const currentMsgDate = new Date(msg.createdAt).toDateString();
           const prevMsgDate = index > 0 ? new Date(messages[index - 1].createdAt).toDateString() : null;
-          
-          // لو أول رسالة في الشات أو تاريخ اليوم اختلف عن المسج اللي قبليها
           const showDateDivider = currentMsgDate !== prevMsgDate;
 
           return (
@@ -670,16 +663,24 @@ export default function MessagesList() {
                 </div>
               )}
 
-              <div 
-                id={`msg-${msg._id}`} 
-                className={`message ${isMine ? "mine" : "theirs"} ${hasMedia ? "has-media" : ""} ${msg.isSending ? "optimistic-loading" : ""} ${isCurrentSearchedMatch ? "searched-highlight" : ""}`}
-              >
+              
+              <div id={`msg-${msg._id}`} className={`message ${isMine ? "mine" : "theirs"} ${hasMedia ? "has-media" : ""} ${msg.isSending ? "optimistic-loading" : ""} ${isCurrentSearchedMatch ? "searched-highlight" : ""}`}>
+                
                 {!isMine && active.isGroup && (
                   <div className="sender">
                     {msg.sender?.firstName} {msg.sender?.lastName}
-                    {active.isGroup && msg.sender?.username && (
-                      <span className="group-sender-username"> @{msg.sender.username}</span>
-                    )}
+                    {msg.sender?.username && <span className="group-sender-username"> @{msg.sender.username}</span>}
+                  </div>
+                )}
+
+                {/* كارت عرض الرد المدمج جوة البابل */}
+                {msg.replyTo && (
+                  <div className="message-reply-inside-card" onClick={() => {
+                    const el = document.getElementById(`msg-${msg.replyTo?._id}`);
+                    if(el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+                  }}>
+                    <span className="reply-card-sender">{msg.replyTo.sender?.firstName || "User"}</span>
+                    <p className="reply-card-text">{msg.replyTo.text || "📁 Attachment / Voice"}</p>
                   </div>
                 )}
 
@@ -688,15 +689,42 @@ export default function MessagesList() {
 
                 <div className="send-details">
                   <div className={`timestamp ${isMine ? "mine" : "theirs"}`}>
+                    {msg.isEdited && <span className="edited-label-flag">edited </span>}
                     {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                   </div>
-
                   {isMine && !active.isGroup && (
                     <div className="seen">
                       {msg.isSending ? <span className="msg-sending-spinner" /> : msg.seen ? <FaCheckDouble /> : <FaCheck />}
                     </div>
                   )}
                 </div>
+
+                {/* بادج عرض الإيموجيز المتفاعلة */}
+                {msg.reactions && msg.reactions.length > 0 && (
+                  <div className="message-reactions-badge-container">
+                    {msg.reactions.map((react, i) => (
+                      <span key={i} className="single-reaction-badge" title={`Reacted by ${react.username}`}>
+                        {react.emoji}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* المنيو الطائرة بتوجيه سليم تماماً بدون ما تبوظ الـ Row */}
+                <div className={`message-hover-actions-menu ${activeReactionMenu === msg._id ? "forced-show" : ""}`}>
+                  <div className="emoji-reaction-picker-tray">
+                    {EMOJI_LIST.map((emoji) => (
+                      <button key={emoji} onClick={() => handleEmojiReact(msg._id, emoji)} className="tray-emoji-btn">{emoji}</button>
+                    ))}
+                  </div>
+                  <div className="action-divider-pipe"></div>
+                  <button className="action-menu-icon-btn" onClick={() => dispatch(setReplyingTo(msg))} title="Reply"><FaReply /></button>
+                  {isMine && msg.fileType === "text" && !msg.isSending && (
+                    <button className="action-menu-icon-btn" onClick={() => dispatch(setEditingMessage(msg))} title="Edit"><FaPen /></button>
+                  )}
+                  <button className="action-menu-icon-btn mobile-emoji-trigger" onClick={() => setActiveReactionMenu(activeReactionMenu === msg._id ? null : msg._id)}><FaRegSmile /></button>
+                </div>
+
               </div>
             </div>
           );

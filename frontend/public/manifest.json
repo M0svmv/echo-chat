@@ -4,18 +4,27 @@
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f0f1a",
-  "theme_color": "#00f0ff",
+  "theme_color": "#2563eb",
   "description": "Echo social chat app",
+  "orientation": "portrait",
   "icons": [
     {
-      "src": "./assets/echoLogo.png",
+      "src": "assets/echoLogo.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
-      "src": "./assets/echoLogo.png",
+      "src": "assets/echoLogo.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/echoLogo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

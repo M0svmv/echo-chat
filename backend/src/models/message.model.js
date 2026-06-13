@@ -45,6 +45,35 @@ const messageSchema = new mongoose.Schema(
         },
       },
     ],
+
+    replyTo:{
+      type:mongoose.Schema.Types.ObjectId,
+      ref:"Message",
+      default:null
+    },
+    isEdited:{
+      type:Boolean,
+      default:false
+    },
+
+    editedAt: {
+      type: Date,
+      default: null,
+    },
+    
+
+    reactions:[{
+      userId:{ 
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"User"
+      },
+      username:{ type:String,},
+      emoji:{ 
+        type:String,
+      }
+    
+    }
+    ]
   },
   { timestamps: true }
 );

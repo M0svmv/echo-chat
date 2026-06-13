@@ -387,3 +387,95 @@
 .message-attach-button:hover{
     color:var(--color-tertiary);
 }
+
+
+.input-action-bar-preview {
+  display: flex;
+  align-items: center;
+  width: var(--full-percent);
+  background: var(--color-input-bg);
+  padding: 8px var(--medium-padding);
+  border: 1px solid var(--color-secondary);
+  position: relative;
+  animation: slideDown var(--animation-duration) var(--transition-easing);
+  box-sizing: border-box;
+  border-radius: var(--border-radius-sqr) ;
+  margin-bottom: 2px;
+}
+
+
+.bar-vertical-line {
+  width: 3px;
+  height: 24px;
+  background: var(--color-secondary);
+  box-shadow: 0 0 8px var(--color-secondary);
+  border-radius: var(--border-radius-sqr);
+  margin-right: var(--medium-padding);
+}
+
+
+.bar-vertical-line.edit-line {
+  background: var(--color-secondary);
+  box-shadow: 0 0 8px var(--color-secondary);
+}
+
+.action-bar-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  text-align: left; /* متوافق مع النصوص اللاتينية وأسماء المستخدمين */
+}
+
+.action-title {
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: var(--color-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.action-title.edit-title {
+  color: var(--color-secondary);
+}
+
+.action-subtitle {
+  font-size: 0.85rem;
+  color: var(--color-text-light);
+  opacity: 0.8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 85%;
+}
+
+/* زر إغلاق الـ Preview */
+.close-action-bar {
+  background: none;
+  border: none;
+  color: var(--color-text-light);
+  cursor: pointer;
+  padding: var(--small-padding);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--transition-duration) var(--transition-easing);
+}
+
+.close-action-bar:hover {
+  color: var(--color-error);
+}
+
+/* علامة المعدّل (edited) بجانب توقيت الرسالة */
+.edited-label-flag {
+  font-size: 0.7rem;
+  color: var(--color-text-light);
+  opacity: 0.7;
+  margin-right: 4px;
+  text-transform: lowercase;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
