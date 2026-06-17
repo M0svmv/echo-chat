@@ -288,3 +288,52 @@ exports.toggleReaction = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
+exports.deleteMessage = async (req, res) => {
+  try {
+    const io = req.app.get("io");
+    const onlineUsers = req.app.get("onlineUsers");
+    const senderId = req.user._id;
+    const { messageId } = req.params;
+
+    // 1. البحث عن الرسالة
+    const message = await Message.findById(messageId);
+    if (!message) return res.status(404).json({ message: "Message not found" });
+
+    // 2. التحقق من أن المستخدم هو صاحب الرسالة
+    if (message.sender.toString() !== senderId.toString()) {
+      return res.status(403).json({ message: "You are not authorized to delete this message" });
+    }
+
+    // 3. حذف الرسالة من قاعدة البيانات
+    const conversationId = message.conversationId;
+    await Message.findByIdAndDelete(messageId);
+
+    // 4. تحديث آخر رسالة في المحادثة إذا كانت الرسالة المحذوفة هي الأخيرة
+    const conversation = await Conversation.findById(conversationId);
+    if (conversation && conversation.lastMessage?.toString() === messageId.toString()) {
+      const lastMessage = await Message.findOne({ conversationId }).sort({ createdAt: -1 });
+      conversation.lastMessage = lastMessage ? lastMessage._id : null;
+      await conversation.save();
+    }
+
+    // 5. إرسال حدث الحذف عبر السوكت لجميع المشاركين
+    if (conversation) {
+      conversation.participants.forEach((participantId) => {
+        const socketId = onlineUsers?.get(participantId.toString());
+        if (socketId) {
+          io.to(socketId).emit("messageDeleted", {
+            messageId,
+            conversationId
+          });
+        }
+      });
+    }
+
+    return res.status(200).json({ message: "Message deleted successfully" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};

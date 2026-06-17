@@ -136,6 +136,10 @@ setEditingMessage: (state, action) => {
   state.editingMessage = action.payload;
 },
 
+deleteMessage: (state, action) => {
+    state.messages = state.messages.filter((msg) => msg._id !== action.payload);
+  },
+
     markMessagesSeen: (state, action) => {
       const { conversationId, userId } = action.payload;
       state.messages = state.messages.map((msg) =>
@@ -210,7 +214,8 @@ export const {
   updateEditedMessage,
   updateMessageReactions,
   setReplyingTo,
-  setEditingMessage
+  setEditingMessage,
+  deleteMessage
 } = chatSlice.actions;
 
 export default chatSlice.reducer;

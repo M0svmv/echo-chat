@@ -11,8 +11,9 @@ import {
   setActiveConversation,
   updateEditedMessage,
   updateMessageReactions,
+  deleteMessage,
   setReplyingTo,       // 👈 استخدام الريدكس مباشرة
-  setEditingMessage    // 👈 استخدام الريدكس مباشرة
+  setEditingMessage,    // 👈 استخدام الريدكس مباشرة
 } from "../features/chat/chatSlice";
 import "../styles/messagesList.css";
 
@@ -431,10 +432,17 @@ export default function MessagesList() {
       }
     });
 
+    socket.on("messageDeleted", ({ messageId, conversationId }) => {
+      if (conversationId === active._id) {
+        dispatch(deleteMessage(messageId));
+      }
+    });
+
     return () => {
       socket.off("newMessage");
       socket.off("messageEdited");
       socket.off("messageReactionUpdated");
+      socket.off("messageDeleted");
     };
   }, [active?._id, currentUser?._id, dispatch]);
 
@@ -722,6 +730,23 @@ export default function MessagesList() {
                   {isMine && msg.fileType === "text" && !msg.isSending && (
                     <button className="action-menu-icon-btn" onClick={() => dispatch(setEditingMessage(msg))} title="Edit"><FaPen /></button>
                   )}
+                  {isMine && !msg.isSending && (
+    <button 
+      className="action-menu-icon-btn delete-btn" 
+      onClick={async () => {
+        if (window.confirm("Are you sure you want to delete this message?")) {
+          try { 
+            await api.delete(`/messages/delete/${msg._id}`); 
+          } catch (err) { 
+            alert("Failed to delete message"); 
+          }
+        }
+      }} 
+      title="Delete"
+    >
+      <FiX />
+    </button>
+  )}
                   <button className="action-menu-icon-btn mobile-emoji-trigger" onClick={() => setActiveReactionMenu(activeReactionMenu === msg._id ? null : msg._id)}><FaRegSmile /></button>
                 </div>
 

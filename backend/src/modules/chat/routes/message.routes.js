@@ -16,5 +16,6 @@ router.get("/:conversationId", protect, getMessages);
 
 router.put("/edit/:messageId", protect, messageController.editMessage);
 router.post("/react/:messageId", protect, messageController.toggleReaction);
+router.delete("/delete/:messageId", protect, messageController.deleteMessage);
 
 module.exports = router;
