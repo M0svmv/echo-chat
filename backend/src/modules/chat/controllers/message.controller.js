@@ -124,6 +124,7 @@ exports.sendMessage = async (req, res) => {
       .populate("participants", "firstName lastName username avatar")
       .populate("groupAdmin", "firstName lastName username avatar")
       .populate("unreadCounts.user", "_id") // جلب الـ ID لتطابق شروط الفرونت إيند
+      .populate("pinnedBy", "_id")
       .populate({
         path: "lastMessage",
         populate: {

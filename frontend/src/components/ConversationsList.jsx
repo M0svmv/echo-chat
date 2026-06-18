@@ -14,6 +14,7 @@ import { IoCloseCircle } from "react-icons/io5";
 import { FiMoreVertical, FiArchive } from "react-icons/fi";
 
 import "../styles/chat.css";
+import { FaThumbtack } from "react-icons/fa6";
 
 const ConversationAvatar = memo(({ avatar, firstName, lastName }) => {
   const hasAvatar = !!avatar;
@@ -283,16 +284,32 @@ setCloseFriends(closeFriendsRes.map((u) => (u.targetUser?._id || u._id || u).toS
     return () => socket.off("conversationArchived");
   }, [dispatch]);
 
-  const filteredConversations = conversations.filter((conv) => {
-    if (conv.isGroup) return false;
-    if (!activeSearch) return true;
-    
-    const otherUser = conv.participants.find((p) => p._id !== currentUser?._id);
-    const fullName = `${otherUser?.firstName} ${otherUser?.lastName}`.toLowerCase();
-    const username = otherUser?.username?.toLowerCase() || "";
-    const query = activeSearch.toLowerCase();
-    return fullName.includes(query) || username.includes(query);
-  });
+  // تعديل منطق الفلترة والترتيب ليدعم الـ Pinned
+  const filteredConversations = conversations
+    .filter((conv) => {
+      if (conv.isGroup) return false;
+      if (!activeSearch) return true;
+      
+      const otherUser = conv.participants.find((p) => p._id !== currentUser?._id);
+      const fullName = `${otherUser?.firstName} ${otherUser?.lastName}`.toLowerCase();
+      const username = otherUser?.username?.toLowerCase() || "";
+      const query = activeSearch.toLowerCase();
+      return fullName.includes(query) || username.includes(query);
+    })
+    .sort((a, b) => {
+      // 1. فحص هل المحادثة مثبتة للمستخدم الحالي
+      const aPinned = a.pinnedBy?.includes(currentUser?._id);
+      const bPinned = b.pinnedBy?.includes(currentUser?._id);
+
+      // 2. إذا كانت واحدة مثبتة والأخرى لا، المثبتة تأتي أولاً
+      if (aPinned && !bPinned) return -1;
+      if (!aPinned && bPinned) return 1;
+
+      // 3. إذا كانت الحالتين متساويتين (كلاهما مثبت أو كلاهما لا)، نرتب حسب وقت آخر تحديث
+      const dateA = new Date(a.updatedAt || 0);
+      const dateB = new Date(b.updatedAt || 0);
+      return dateB - dateA;
+    });
 
   return (
     <div className="chatsContainer">
@@ -319,6 +336,7 @@ setCloseFriends(closeFriendsRes.map((u) => (u.targetUser?._id || u._id || u).toS
         <ul>
           {filteredConversations.length > 0 ? (
             filteredConversations.map((conv) => {
+              const isPinned = conv.pinnedBy?.includes(currentUser._id);
               const otherUser = conv.participants.find(
                 (p) => p._id !== currentUser?._id
               );
@@ -395,6 +413,7 @@ console.log(`Checking chat with ${otherUser?.firstName}: otherUserId=${otherUser
 
                   <div className="chat-review">
                     <div className="chatInfo" style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                      
                       {otherUser?.firstName} {otherUser?.lastName}
                       
                       {isCloseFriend && (
@@ -405,6 +424,10 @@ console.log(`Checking chat with ${otherUser?.firstName}: otherUserId=${otherUser
                 
                       
                       <span className="username-tag"> @{otherUser?.username}</span>
+
+                      {conv.pinnedBy?.includes(currentUser?._id) && (
+    <FaThumbtack style={{ color: "#6c757d", fontSize: "0.8rem" }} />
+  )}
                     </div>
 
                     {conv.lastMessage && (
@@ -452,11 +475,13 @@ console.log(`Checking chat with ${otherUser?.firstName}: otherUserId=${otherUser
                       </div>
                     )}
                   </div>
+                  
 
                   <div
                     className="conv-more-options"
                     ref={openMenuId === conv._id ? menuRef : null}
                   >
+                  
                     <button
                       className="conv-more-btn"
                       onClick={(e) => toggleMenu(e, conv._id)}
@@ -474,6 +499,22 @@ console.log(`Checking chat with ${otherUser?.firstName}: otherUserId=${otherUser
                           <FiArchive />
                           <span> Archive Chat</span>
                         </button>
+
+                        <button
+  className="conv-dropdown-item"
+  onClick={async (e) => {
+    e.stopPropagation();
+    try {
+      await api.post("/chats/pin", { conversationId: conv._id });
+      setOpenMenuId(null);
+    } catch (err) {
+      console.error("Failed to pin conversation:", err);
+    }
+  }}
+>
+  <FaThumbtack />
+  <span>{isPinned ? " Unpin Chat" : " Pin Chat"}</span>
+</button>
 
                         {/* 7️⃣ التحكم الذكي بالخيارات بناءً على حالة الطلبات الصادرة والواردة */}
                         {!isAlreadyFriend ? (

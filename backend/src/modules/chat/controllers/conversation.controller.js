@@ -46,7 +46,7 @@ exports.getUserConversations = async (req, res) => {
       select: "username firstName lastName",
     },
   })
-  .sort({ updatedAt: -1 });
+  .sort({ pinnedBy: -1,updatedAt: -1 });
     return res.status(200).json(conversations);
   } catch (error) {
     return res.status(500).json({ message: "Internal server error" });
@@ -669,4 +669,41 @@ exports.deleteGroupChat = async (req, res) => {
 };
 
 
+exports.togglePinConversation = async (req, res) => {
+  try {
+    const { conversationId } = req.body;
+    const userId = req.user._id;
 
+    const conversation = await Conversation.findById(conversationId);
+    if (!conversation) return res.status(404).json({ message: "Conversation not found" });
+
+    const isPinned = conversation.pinnedBy.includes(userId);
+
+    if (isPinned) {
+      // إذا كان مثبتًا، قم بإزالته
+      conversation.pinnedBy = conversation.pinnedBy.filter(id => id.toString() !== userId.toString());
+    } else {
+      // إذا لم يكن مثبتًا، قم بإضافته
+      conversation.pinnedBy.push(userId);
+    }
+
+    await conversation.save();
+
+    // إرسال التحديث عبر السوكت ليتم الترتيب فوراً في الفرونت إيند
+    const io = req.app.get("io");
+    const updatedConversation = await Conversation.findById(conversationId)
+      .populate("participants", "firstName lastName username avatar")
+      .populate("pinnedBy", "_id");
+
+    conversation.participants.forEach((participantId) => {
+      const socketId = req.app.get("onlineUsers")?.get(participantId.toString());
+      if (socketId) {
+        io.to(socketId).emit("conversationUpdated", updatedConversation);
+      }
+    });
+
+    return res.status(200).json({ isPinned: !isPinned });
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};

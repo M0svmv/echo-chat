@@ -24,6 +24,8 @@ router.post("/group", protect, conversationController.makeGroupChat);
 
 router.get("/group/myGroups", protect, conversationController.getMyGroupChats);
 
+router.post("/pin", protect, conversationController.togglePinConversation);
+
 router.put("/group/leave/:conversationId", protect, conversationController.leaveGroupChat);
 
 router.put("/group/add/:conversationId", protect, conversationController.addMembersToGroupChat);
