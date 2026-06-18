@@ -10,6 +10,7 @@ const initialState = {
   activeConversation: null,
   replyingTo: null,
 editingMessage: null,
+mediaPreview: null,
 };
 
 const chatSlice = createSlice({
@@ -149,6 +150,15 @@ deleteMessage: (state, action) => {
       );
     },
 
+    // فتح نافذة المعاينة
+    setMediaPreview: (state, action) => {
+      state.mediaPreview = action.payload;
+    },
+    // إغلاق نافذة المعاينة
+    clearMediaPreview: (state) => {
+      state.mediaPreview = null;
+    },
+
     updateConversation: (state, action) => {
       const { hasNewMessage, ...updated } = action.payload;
       const index = state.conversations.findIndex((c) => c._id === updated._id);
@@ -215,7 +225,9 @@ export const {
   updateMessageReactions,
   setReplyingTo,
   setEditingMessage,
-  deleteMessage
+  deleteMessage,
+  setMediaPreview,
+  clearMediaPreview
 } = chatSlice.actions;
 
 export default chatSlice.reducer;

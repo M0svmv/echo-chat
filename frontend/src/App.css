@@ -1,0 +1,76 @@
+@import './base.css';
+
+.media-preview-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100dvw;
+  height: 100dvh;
+  background-color: var(--color-tertiary-bg) ;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; /* للتأكد من ظهوره فوق كل شيء */
+  backdrop-filter: blur(8px); /* تأثير ضبابي عصري خلف النافذة */
+  animation: fadeIn 0.25s ease;
+}
+
+/* حاوية الميديا */
+.media-preview-modal-content {
+  position: relative;
+  max-width: 85%;
+  max-height: 85%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* العناصر المعروضة (صورة أو فيديو) */
+.media-preview-element {
+  max-width: 100%;
+  max-height: 80vh;
+  border-radius: 12px;
+  box-shadow: 0 0 30px var(--color-tertiary) ; /* توهج نيوني خفيف باللون البنفسجي #6C00FF */
+  object-fit: contain;
+}
+
+/* زر الإغلاق النيوني */
+.media-preview-close-btn {
+  position: absolute;
+  top: -50px;
+  right: 0;
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 1.8rem;
+  cursor: pointer;
+  transition: color 0.2s, transform 0.2s;
+}
+
+.media-preview-close-btn:hover {
+  color: var(--color-tertiary) ; /* يتغير للبنفسجي النيوني عند الوقوف عليه */
+  transform: scale(1.1);
+}
+
+/* أيقونة تشغيل الفيديو في الرسائل */
+.video-play-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--color-tertiary-bg) ;
+  color: white;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2rem;
+  box-shadow: 0 0 15px var(--color-tertiary-bg) ;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
