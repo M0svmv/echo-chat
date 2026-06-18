@@ -74,3 +74,144 @@
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
+
+.camera-modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100dvw !important;
+  height: 100dvh !important;
+  background-color: rgba(0, 0, 0, 0.8) !important;
+  display: flex !important; /* تأكد أنها flex */
+  justify-content: center !important;
+  align-items: center !important;
+  z-index: 99999 !important; /* رقم ضخم جداً لضمان الظهور فوق كل شيء */
+}
+.camera-modal-content {
+  background: var(--color-primary);
+  padding: 20px;
+  border-radius: 10px;
+  width: 80%;
+  max-width: 500px;
+  position: relative;
+  border: var(--border-not-hovered);
+  transition: border var(--transition-duration) var(--transition-easing);
+  z-index: 99999;
+}
+
+.camera-modal-content:hover{
+  border: var(--border-hovered);
+}
+.webcam-preview {
+  width: 100%;
+  border-radius: 12px;
+}
+
+.camera-actions {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+}
+
+.camera-actions button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-placeholder);
+  font-size: 20px;
+  transition: color var(--transition-duration) var(--transition-easing);
+}
+
+.camera-actions button:hover {
+  color: var(--color-tertiary);
+}
+
+.capture-btn {
+  background: var(--color-transparent);
+  color: var(--color-text-placeholder);
+  border: var(--border-not-hovered)!important;
+  border-radius: 12px;
+  padding: 15px 20px;
+  cursor: pointer;
+  transition: color var(--transition-duration) var(--transition-easing), border var(--transition-duration) var(--transition-easing);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  box-sizing: border-box !important;
+}
+
+.capture-btn:hover {
+  
+  color: var(--color-tertiary);
+  border: var(--border-hovered)!important;
+}
+
+.camera-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: var(--color-text-placeholder);
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.camera-modal-content .close-btn {
+  
+  
+  background: none;
+  border: none;
+  color: var(--color-text-placeholder);
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.camera-modal-content .close-btn:hover {
+  color: var(--color-error);
+}
+
+/* تنسيق علامة التسجيل والتايمر */
+.recording-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 8px 15px;
+  border-radius: 20px;
+}
+
+.recording-dot {
+  width: 10px;
+  height: 10px;
+  background-color: #ff0000;
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+
+.recording-timer {
+  color: white;
+  font-family: monospace;
+  font-size: 16px;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.3; }
+  100% { opacity: 1; }
+}
+
+/* تنسيق الـ Loading */
+.loading {
+  width: 100% !important;
+  height: 100% !important;
+  
+  
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
+  z-index: 5;
+}

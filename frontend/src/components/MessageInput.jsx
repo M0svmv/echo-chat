@@ -10,10 +10,11 @@ import {
 import '../styles/messageInput.css';
 import { IoPaperPlaneOutline } from "react-icons/io5";
 import { FaPaperclip, FaMicrophone } from "react-icons/fa6";
-import { FaStop, FaTimes, FaPen } from "react-icons/fa";
+import { FaStop, FaTimes, FaPen, FaCamera } from "react-icons/fa";
 import { FiX } from "react-icons/fi"; 
 
 import CustomAudioPlayer from "./CustomAudioPlayer";
+import CameraModal from "./CameraModal";
 
 // ===== مكون عرض الـ Preview قبل الإرسال =====
 function AttachmentPreview({ file, onRemove }) {
@@ -129,6 +130,7 @@ export default function MessageInput() {
   const [isRecording, setIsRecording] = useState(false);
   const [recordDuration, setRecordDuration] = useState(0);
   const [isSending, setIsSending] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
 
   const hasContent = text.trim().length > 0 || attachedFile !== null;
 
@@ -412,6 +414,8 @@ export default function MessageInput() {
   if (isRecording) {
     return (
       <div className="message-input-wrapper">
+        
+
         <RecordingIndicator
           duration={recordDuration}
           onCancel={() => stopRecording(true)}
@@ -424,17 +428,12 @@ export default function MessageInput() {
   return (
     <div className="message-input-wrapper">
       
-      {/* ==========================================================================
-         🎮 أشرطة الرد والتعديل المعلقة (تظهر فوق شريط الـ Input وتحت الرسائل مباشرة)
-         ========================================================================== */}
-      
-      {/* 1. شريط معاينة الرد (Reply Preview) */}
-      
-
-      {/* 2. شريط معاينة التعديل (Edit Preview) */}
-      
-
-      {/* شريط الإدخال الرئيسي */}
+      {showCamera && (
+        <CameraModal 
+          onClose={() => setShowCamera(false)} 
+          onCapture={(file) => setAttachedFile(file)} 
+        />
+      )}
       <div className="message-input-container">
 
       {editingMessage && (
@@ -483,6 +482,8 @@ export default function MessageInput() {
           >
             <FaPaperclip />
           </button>
+
+          <button className="message-attach-button" style={{ marginLeft: "25px" }} onClick={() => {console.log("Camera button clicked!"); setShowCamera(true)}}><FaCamera /></button>
 
           <input
             ref={fileInputRef}
