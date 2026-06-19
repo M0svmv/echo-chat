@@ -1,4 +1,4 @@
-import MessagesList from "./MessagesList";
+import MessagesList from "./parentComponents/messagesList/MessageList";
 import MessageInput from "./MessageInput";
 import {useSelector,useDispatch} from "react-redux";
 import {useEffect} from "react";
