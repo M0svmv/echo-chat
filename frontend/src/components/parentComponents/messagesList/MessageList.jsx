@@ -18,9 +18,9 @@ import NotSelectedChat from "../../NotSelectedChat";
 import GroupDetails from "../../GroupDetails";
 import MediaPreviewModal from "../../MediaPreviewModal";
 
-import ChatHeader from "./childs/ChatHeader";
-import MessageSearchBar from "./childs/MessageSearchBar";
-import MessagesContainer from "./childs/MessagesContainer";
+import ChatHeader from "./children/ChatHeader";
+import MessageSearchBar from "./children/MessageSearchBar";
+import MessagesContainer from "./children/MessagesContainer";
 
 import useChatRelations from "./../../hooks/useChatRelations";
 import useChatSockets from "./../../hooks/useChatSocket";
@@ -211,13 +211,13 @@ export default function MessagesList() {
         onToggleSearch={toggleSearch}
         onViewGroupInfo={() => setViewingGroupDetails(true)}
         onArchive={handleArchive}
-        onAcceptRequest={handleAcceptRequest}
-        onRejectRequest={handleRejectRequest}
-        onCancelRequest={handleCancelRequest}
-        onAddFriend={handleAddFriend}
+        onAcceptRequest={(reqId) => handleAcceptRequest(reqId)}
+        onRejectRequest={(reqId) => handleRejectRequest(reqId)}
+        onCancelRequest={(reqId) => handleCancelRequest(reqId)}
+        onAddFriend={() => handleAddFriend()}
+        onRemoveFriend={() => handleRemoveFriend()}
+        onUnblockUser={() => handleUnblockUser()}
         onMakeCloseFriend={() => handleMakePreference("close_friend")}
-        onRemoveFriend={handleRemoveFriend}
-        onUnblockUser={handleUnblockUser}
         onBlockUser={() => handleMakePreference("block")}
         onDeleteChat={() => dispatch(removeConversation(active._id))}
         onLeaveGroup={handleLeaveGroup}

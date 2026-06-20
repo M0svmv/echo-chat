@@ -1,150 +1,141 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import api from "../../api/axios";
 
 /**
- * هوك مسؤول عن كل منطق العلاقات الخاصة بالمحادثة الحالية:
- * - طلبات الصداقة (المرسلة والمستقبلة)
- * - قائمة الأصدقاء المحليين
- * - المستخدمين المحظورين
- * - الأصدقاء المقربين (close friends)
- *
- * كل الأكشنز (إضافة/حذف/حظر/قبول/رفض...) موجودة جوه الهوك
- * وترجع بره عشان تستخدم في الـ UI (مثلاً الدروب داون منيو)
+ * الهوك الموحد لإدارة العلاقات (الصداقة، الحظر، الأصدقاء المقربين)
+ * يعمل في وضعيّن:
+ * 1. وضع الشات النشط: عند تمرير (active, receiver, setShowDropdown)
+ * 2. الوضع العام: عند استخدامه في القوائم وصفحات البحث (بدون تمرير معاملات الشات)
  */
-export default function useChatRelations({ active, currentUser, receiver, setShowDropdown }) {
+export default function useChatRelations({
+  currentUser,
+  active,
+  receiver,
+  setShowDropdown,
+  onActionDone,
+} = {}) {
   const [pendingRequests, setPendingRequests] = useState([]);
   const [receivedRequests, setReceivedRequests] = useState([]);
   const [localFriends, setLocalFriends] = useState([]);
   const [blockedUsers, setBlockedUsers] = useState([]);
   const [closeFriends, setCloseFriends] = useState([]);
 
+  // دالة جلب البيانات معزولة لإعادة استخدامها
+  const fetchRelations = useCallback(async () => {
+    try {
+      const res = await api.get("/friends/summary").catch(() => ({ data: {} }));
+      const {
+        friendsRes = [],
+        requestsRes = [],
+        receivedRes = [],
+        blockedRes = [],
+        closeFriendsRes = [],
+      } = res.data;
+
+      setPendingRequests(requestsRes);
+      setReceivedRequests(receivedRes);
+      setLocalFriends(friendsRes);
+      setBlockedUsers(blockedRes.map((u) => (u.targetUser?._id || u._id || u).toString()));
+      setCloseFriends(closeFriendsRes.map((u) => (u.targetUser?._id || u._id || u).toString()));
+    } catch (err) {
+      console.error("Failed to fetch relations data:", err);
+    }
+  }, []);
+
+  // useEffect مرن: يشتغل عند فتح الصفحة، ويعيد الجلب لو الـ active chat تغيرت
   useEffect(() => {
-    if (!active) return;
-    const fetchRelations = async () => {
-      try {
-        const res = await api
-          .get("/friends/summary")
-          .catch(() => ({ data: {} }));
-        const {
-          friendsRes = [],
-          requestsRes = [],
-          receivedRes = [],
-          blockedRes = [],
-          closeFriendsRes = [],
-        } = res.data;
-        setPendingRequests(requestsRes);
-        setReceivedRequests(receivedRes);
-        setLocalFriends(friendsRes);
-        setBlockedUsers(
-          blockedRes.map((u) => (u.targetUser?._id || u._id || u).toString()),
-        );
-        setCloseFriends(
-          closeFriendsRes.map((u) =>
-            (u.targetUser?._id || u._id || u).toString(),
-          ),
-        );
-      } catch (err) {
-        console.error("Error syncing contextual features:", err);
-      }
-    };
+    // لو الهوك مستخدم في سياق شات، ومفيش شات نشط حالياً.. ميعملش حاجة
+    if (active !== undefined && !active) return;
+    
     fetchRelations();
-  }, [active?._id]);
+  }, [active?._id, fetchRelations]);
 
-  const handleMakePreference = async (type) => {
-    if (!receiver) return;
-    if (
-      type === "block" &&
-      !window.confirm(`Are you sure you want to block ${receiver.firstName}?`)
-    )
-      return;
+  // دالة مساعدة لإنهاء الأكشن وتقليل تكرار الكود
+  const handleActionSuccess = (alertMessage) => {
+    if (alertMessage) alert(alertMessage);
+    setShowDropdown?.(false); // سيتم استدعاؤها فقط لو كانت ممررة للهوك
+    onActionDone?.();        // سيتم استدعاؤها فقط لو كانت ممررة للهوك
+  };
+
+  // دالة مساعدة لتحديد المستخدم المستهدف (سواء ممرر للدالة أو مأخوذ من الهوك)
+  const getTargetUser = (passedUser) => passedUser || receiver;
+
+  const handleMakePreference = async (passedUserOrType, possibleType) => {
+    // دعم الطريقتين: handleMakePreference(type) أو handleMakePreference(user, type)
+    const hasPassedUser = typeof passedUserOrType === "object";
+    const targetUser = hasPassedUser ? passedUserOrType : receiver;
+    const type = hasPassedUser ? possibleType : passedUserOrType;
+
+    if (!targetUser) return;
+    if (type === "block" && !window.confirm(`Are you sure you want to block ${targetUser.firstName}?`)) return;
 
     try {
-      await api.post("/friends/preference", {
-        type,
-        targetUserId: receiver._id,
-      });
+      await api.post("/friends/preference", { type, targetUserId: targetUser._id });
+      
       if (type === "block") {
-        setBlockedUsers((prev) => [...prev, receiver._id.toString()]);
-        setCloseFriends((prev) =>
-          prev.filter((id) => id !== receiver._id.toString()),
-        );
-        alert("User blocked successfully");
+        setBlockedUsers((prev) => [...prev, targetUser._id.toString()]);
+        setCloseFriends((prev) => prev.filter((id) => id !== targetUser._id.toString()));
+        handleActionSuccess("User blocked successfully");
       } else if (type === "close_friend") {
-        setCloseFriends((prev) => [...prev, receiver._id.toString()]);
-        alert("Added to close friends");
+        setCloseFriends((prev) => [...prev, targetUser._id.toString()]);
+        handleActionSuccess("Added to close friends");
       }
-      setShowDropdown(false);
     } catch (err) {
-      console.error(err);
-      alert("Action failed");
+      console.error(`Failed preference action (${type}):`, err);
+      alert(err.response?.data?.message || "Action failed");
     }
   };
 
-  const handleUnblockUser = async () => {
-    if (!receiver) return;
+  const handleUnblockUser = async (passedUser) => {
+    const targetUser = getTargetUser(passedUser);
+    if (!targetUser) return;
+
     try {
-      await api.post("/friends/preference", {
-        type: "unblock",
-        targetUserId: receiver._id,
-      });
-      setBlockedUsers((prev) =>
-        prev.filter((id) => id !== receiver._id.toString()),
-      );
-      alert(`${receiver.firstName} has been unblocked.`);
-      setShowDropdown(false);
+      await api.post("/friends/preference", { type: "unblock", targetUserId: targetUser._id });
+      setBlockedUsers((prev) => prev.filter((id) => id !== targetUser._id.toString()));
+      handleActionSuccess(`${targetUser.firstName} has been unblocked.`);
     } catch (err) {
-      alert("Could not unblock user.");
+      alert(err.response?.data?.message || "Could not unblock user.");
     }
   };
 
-  const handleRemoveFriend = async () => {
-    if (!receiver) return;
-    if (
-      !window.confirm(
-        `Are you sure you want to remove ${receiver.firstName} from friends?`,
-      )
-    )
-      return;
+  const handleRemoveFriend = async (passedUser) => {
+    const targetUser = getTargetUser(passedUser);
+    if (!targetUser) return;
+    if (!window.confirm(`Are you sure you want to remove ${targetUser.firstName} from friends?`)) return;
 
     try {
-      await api.delete("/friends/remove", { data: { friendId: receiver._id } });
+      await api.delete("/friends/remove", { data: { friendId: targetUser._id } });
       setLocalFriends((prev) =>
-        prev.filter(
-          (f) =>
-            (f.targetUser?._id || f._id || f).toString() !==
-            receiver._id.toString(),
-        ),
+        prev.filter((f) => (f.targetUser?._id || f._id || f).toString() !== targetUser._id.toString())
       );
-      setCloseFriends((prev) =>
-        prev.filter((id) => id !== receiver._id.toString()),
-      );
-      alert("Friend removed successfully");
-      setShowDropdown(false);
+      setCloseFriends((prev) => prev.filter((id) => id !== targetUser._id.toString()));
+      handleActionSuccess("Friend removed successfully");
     } catch (err) {
-      alert("Action failed");
+      alert(err.response?.data?.message || "Action failed");
     }
   };
 
-  const handleAddFriend = async () => {
-    if (!receiver || !currentUser) return;
+  const handleAddFriend = async (passedUser) => {
+    const targetUser = getTargetUser(passedUser);
+    if (!targetUser || !currentUser) return;
+
     try {
-      const res = await api.post(`/friends/request/`, {
-        receiverId: receiver._id,
-      });
+      const res = await api.post(`/friends/request/`, { receiverId: targetUser._id });
       const newRequest = res.data?.request || res.data || {};
+      
       setPendingRequests((prev) => [
         ...prev,
         {
           _id: newRequest._id || Date.now().toString(),
           sender: currentUser._id,
-          receiver: receiver._id,
+          receiver: targetUser._id,
           status: "pending",
         },
       ]);
-      alert(`Friend request sent!`);
-      setShowDropdown(false);
+      handleActionSuccess(`Friend request sent to ${targetUser.firstName}!`);
     } catch (err) {
-      alert("Could not send friend request.");
+      alert(err.response?.data?.message || "Could not send friend request.");
     }
   };
 
@@ -153,43 +144,38 @@ export default function useChatRelations({ active, currentUser, receiver, setSho
     try {
       await api.delete(`/friends/request/delete/${requestId}`);
       setPendingRequests((prev) => prev.filter((req) => req._id !== requestId));
-      alert("Friend request cancelled.");
-      setShowDropdown(false);
+      handleActionSuccess("Friend request cancelled.");
     } catch (err) {
-      alert("Could not cancel request.");
+      alert(err.response?.data?.message || "Could not cancel request.");
     }
   };
 
-  const handleAcceptRequest = async (requestId) => {
-    if (!requestId || !receiver) return;
+  const handleAcceptRequest = async (passedUserOrRequestId, possibleRequestId) => {
+    // دعم الطريقتين: handleAcceptRequest(requestId) أو handleAcceptRequest(user, requestId)
+    const isObject = typeof passedUserOrRequestId === "object";
+    const targetUser = isObject ? passedUserOrRequestId : receiver;
+    const requestId = isObject ? possibleRequestId : passedUserOrRequestId;
+
+    if (!requestId) return;
+
     try {
-      await api.post(`/friends/request/respond/${requestId}`, {
-        action: "accepted",
-      });
-      setLocalFriends((prev) => [...prev, receiver]);
-      setReceivedRequests((prev) =>
-        prev.filter((req) => req._id !== requestId),
-      );
-      alert(`You are now friends!`);
-      setShowDropdown(false);
+      await api.post(`/friends/request/respond/${requestId}`, { action: "accepted" });
+      if (targetUser) setLocalFriends((prev) => [...prev, targetUser]);
+      setReceivedRequests((prev) => prev.filter((req) => req._id !== requestId));
+      handleActionSuccess(targetUser ? `You are now friends with ${targetUser.firstName}!` : "Request accepted!");
     } catch (err) {
-      alert("Could not accept request.");
+      alert(err.response?.data?.message || "Could not accept request.");
     }
   };
 
   const handleRejectRequest = async (requestId) => {
     if (!requestId) return;
     try {
-      await api.post(`/friends/request/respond/${requestId}`, {
-        action: "rejected",
-      });
-      setReceivedRequests((prev) =>
-        prev.filter((req) => req._id !== requestId),
-      );
-      alert("Request declined.");
-      setShowDropdown(false);
+      await api.post(`/friends/request/respond/${requestId}`, { action: "rejected" });
+      setReceivedRequests((prev) => prev.filter((req) => req._id !== requestId));
+      handleActionSuccess("Request declined.");
     } catch (err) {
-      alert("Could not decline request.");
+      alert(err.response?.data?.message || "Could not decline request.");
     }
   };
 
@@ -199,6 +185,7 @@ export default function useChatRelations({ active, currentUser, receiver, setSho
     localFriends,
     blockedUsers,
     closeFriends,
+    fetchRelations, // تم إضافتها لـ تتيح لك تحديث البيانات يدوياً لو احتجت
     handleMakePreference,
     handleUnblockUser,
     handleRemoveFriend,

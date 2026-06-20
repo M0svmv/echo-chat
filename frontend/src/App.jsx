@@ -15,16 +15,16 @@ import ProtectedRoute from './routes/ProtectedRoute.jsx';
 import Home from './pages/Home.jsx';
 import UiLayout from './layouts/UiLayout.jsx';
 
-import ConversationsList from './components/ConversationsList.jsx';
+import ConversationsList from './components/parentComponents/sideMenu/chats/ConversationsList.jsx';
 import SendFriendRequest from './components/SendFriendRequest.jsx';
-import FriendRequests from './components/FriendRequests.jsx';
-import RequestsSent from './components/RequestsSent.jsx';
-import ArchiveChats from './components/ArchiveChats.jsx';
-import Friends from './components/FriendsList.jsx';
+import FriendRequests from './components/parentComponents/sideMenu/friends/FriendRequests.jsx';
+import RequestsSent from './components/parentComponents/sideMenu/friends/RequestsSent.jsx';
+import ArchiveChats from './components/parentComponents/sideMenu/chats/ArchiveChats.jsx';
+import Friends from './components/parentComponents/sideMenu/friends/FriendsList.jsx';
 import UpdateProfile from './components/UpdateProfile.jsx';
 import Profile from './components/Profile.jsx';
 import ChangePassword from './components/ChangePassword.jsx';
-import GroupsList from './components/GroupsList.jsx';
+import GroupsList from './components/parentComponents/sideMenu/chats/GroupsList.jsx';
 
 
 
