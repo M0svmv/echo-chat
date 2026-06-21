@@ -1,10 +1,14 @@
 import { useState } from "react";
-import api from "../api/axios";
+import api from "../../../../api/axios";
+import { FaSave } from "react-icons/fa";
 
-// استيراد الأيقونات المناسبة لتغيير كلمة المرور
-import { FaLock, FaSave, FaEye, FaEyeSlash } from "react-icons/fa";
+import "../../../../styles/chat.css";
 
-import "../styles/chat.css";
+import PageHeader from "./children/PageHeader";
+import FormMessage from "./children/FormMessage";
+import PasswordField from "./children/PasswordField";
+
+import useFormMessage from "./../../../hooks/useFormMessage";
 
 export default function ChangePassword() {
   // الحقول مطابقة تماماً لما يتوقعه الباك إند (req.body)
@@ -19,8 +23,8 @@ export default function ChangePassword() {
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState({ type: "", text: "" });
+  const { loading, setLoading, message, clearMessage, setSuccess, setErrorFromResponse } =
+    useFormMessage();
 
   // التعامل مع تغيير الحقول النصية
   const handleChange = (e) => {
@@ -31,7 +35,7 @@ export default function ChangePassword() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage({ type: "", text: "" });
+    clearMessage();
 
     try {
       // إرسال البيانات الثلاثة للـ API المتوافق مع الكنترولر عندك
@@ -41,17 +45,15 @@ export default function ChangePassword() {
         confirmNewPassword: formData.confirmNewPassword,
       });
 
-      
-      setMessage({ type: "success", text: res.data.message });
-      
+      setSuccess(res.data.message);
+
       setFormData({
         currentPassword: "",
         newPassword: "",
         confirmNewPassword: "",
       });
     } catch (error) {
-      const errorMsg = error.response?.data?.message || "Failed to update password";
-      setMessage({ type: "error", text: errorMsg });
+      setErrorFromResponse(error, "Failed to update password");
     } finally {
       setLoading(false);
     }
@@ -59,84 +61,41 @@ export default function ChangePassword() {
 
   return (
     <div className="chatsContainer">
-      <h3 className="pg-title">Change Password</h3>
-      
+      <PageHeader title="Change Password" />
+
       <div className="chat-items-container">
         <form onSubmit={handleSubmit} className="profile-form">
-          
-          {/* رسائل النجاح أو الخطأ من السيرفر */}
-          {message.text && (
-            <div className={`form-message ${message.type}`}>
-              {message.text}
-            </div>
-          )}
+          <FormMessage message={message} />
 
-          {/* حقل كلمة المرور الحالية */}
-          <div className="form-group">
-            <label><FaLock /> Current Password</label>
-            <div style={{ position: "relative" }}>
-              <input
-                type={showCurrent ? "text" : "password"}
-                name="currentPassword"
-                value={formData.currentPassword}
-                onChange={handleChange}
-                required
-                style={{width:"var(--full-percent)" }}
-              />
-              <span 
-                onClick={() => setShowCurrent(!showCurrent)} 
-                style={{ position: "absolute", right: "12px", top: "35%", cursor: "pointer", color: "#888" }}
-              >
-                {showCurrent ? <FaEyeSlash /> : <FaEye />}
-              </span>
-            </div>
-          </div>
+          <PasswordField
+            label="Current Password"
+            name="currentPassword"
+            value={formData.currentPassword}
+            onChange={handleChange}
+            visible={showCurrent}
+            onToggleVisible={() => setShowCurrent(!showCurrent)}
+          />
 
           <hr style={{ border: "0", borderTop: "1px solid #eee", margin: "20px 0" }} />
 
-          {/* حقل كلمة المرور الجديدة */}
-          <div className="form-group">
-            <label><FaLock /> New Password</label>
-            <div style={{ position: "relative" }}>
-              <input
-                type={showNew ? "text" : "password"}
-                name="newPassword"
-                value={formData.newPassword}
-                onChange={handleChange}
-                required
-                style={{width:"var(--full-percent)" }}
-              />
-              <span 
-                onClick={() => setShowNew(!showNew)} 
-                style={{ position: "absolute", right: "12px", top: "35%", cursor: "pointer", color: "#888" }}
-              >
-                {showNew ? <FaEyeSlash /> : <FaEye />}
-              </span>
-            </div>
-          </div>
+          <PasswordField
+            label="New Password"
+            name="newPassword"
+            value={formData.newPassword}
+            onChange={handleChange}
+            visible={showNew}
+            onToggleVisible={() => setShowNew(!showNew)}
+          />
 
-          {/* حقل تأكيد كلمة المرور الجديدة - name="confirmNewPassword" */}
-          <div className="form-group">
-            <label><FaLock /> Confirm New Password</label>
-            <div style={{ position: "relative" }}>
-              <input
-                type={showConfirm ? "text" : "password"}
-                name="confirmNewPassword"
-                value={formData.confirmNewPassword}
-                onChange={handleChange}
-                required
-                style={{width:"var(--full-percent)" }}
-              />
-              <span 
-                onClick={() => setShowConfirm(!showConfirm)} 
-                style={{ position: "absolute", right: "12px", top: "35%", cursor: "pointer", color: "#888" }}
-              >
-                {showConfirm ? <FaEyeSlash /> : <FaEye />}
-              </span>
-            </div>
-          </div>
+          <PasswordField
+            label="Confirm New Password"
+            name="confirmNewPassword"
+            value={formData.confirmNewPassword}
+            onChange={handleChange}
+            visible={showConfirm}
+            onToggleVisible={() => setShowConfirm(!showConfirm)}
+          />
 
-          {/* زر الحفظ */}
           <button type="submit" className="save-profile-btn" disabled={loading}>
             <FaSave /> {loading ? "Updating Password..." : "Update Password"}
           </button>

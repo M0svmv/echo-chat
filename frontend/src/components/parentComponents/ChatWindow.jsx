@@ -1,9 +1,9 @@
-import MessagesList from "./parentComponents/messagesList/MessageList";
-import MessageInput from "./MessageInput";
+import MessagesList from "./messagesList/MessageList";
+import MessageInput from "./messageInput/MessageInput";
 import {useSelector,useDispatch} from "react-redux";
 import {useEffect} from "react";
-import { openMenu} from "../features/ui/uiSlice";
-import "../styles/chatWindow.css";
+import { openMenu} from "../../features/ui/uiSlice";
+import "../../styles/chatWindow.css";
 export default function ChatWindow() {
   const dispatch = useDispatch();
   const active = useSelector((state) => state.chat.activeConversation);

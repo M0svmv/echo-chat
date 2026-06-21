@@ -1,12 +1,19 @@
 import { useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import api from "../api/axios";
-import { updateProfileSuccess } from "../features/auth/authSlice"; // تأكد من مسار الـ slice عندك
-import socket from "../socket/socket";
+import api from "../../../../api/axios";
+import { updateProfileSuccess } from "../../../../features/auth/authSlice"; // تأكد من مسار الـ slice عندك
+import socket from "../../../../socket/socket";
 
-import { FaUser, FaAt, FaEnvelope, FaCamera, FaSave } from "react-icons/fa";
+import { FaUser, FaAt, FaEnvelope, FaSave } from "react-icons/fa";
 
-import "../styles/chat.css";
+import "../../../../styles/chat.css";
+
+import PageHeader from "./children/PageHeader";
+import FormMessage from "./children/FormMessage";
+import ProfileAvatar from "./children/ProfileAvatar";
+import LabeledInput from "./children/LabeledInput";
+
+import useFormMessage from "./../../../hooks/useFormMessage";
 
 export default function UpdateProfile() {
   const dispatch = useDispatch();
@@ -24,8 +31,9 @@ export default function UpdateProfile() {
 
   const [avatarFile, setAvatarFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(currentUser?.avatar || "");
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState({ type: "", text: "" });
+
+  const { loading, setLoading, message, clearMessage, setSuccess, setErrorFromResponse } =
+    useFormMessage();
 
   const fileInputRef = useRef(null);
 
@@ -51,7 +59,7 @@ export default function UpdateProfile() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage({ type: "", text: "" });
+    clearMessage();
 
     try {
       // بما إن فيه ملف (صورة)، لازم نستخدم FormData
@@ -61,7 +69,7 @@ export default function UpdateProfile() {
       data.append("username", formData.username);
       data.append("email", formData.email);
       data.append("bio", formData.bio);
-      
+
       if (avatarFile) {
         data.append("avatar", avatarFile);
       }
@@ -77,10 +85,9 @@ export default function UpdateProfile() {
       // 2. إرسال حدث عبر الـ Socket عشان باقي المستخدمين يشوفوا التحديث Real-time
       socket.emit("profileUpdated", res.data.user);
 
-      setMessage({ type: "success", text: "Profile updated successfully!" });
+      setSuccess("Profile updated successfully!");
     } catch (error) {
-      const errorMsg = error.response?.data?.message || "Failed to update profile";
-      setMessage({ type: "error", text: errorMsg });
+      setErrorFromResponse(error, "Failed to update profile");
     } finally {
       setLoading(false);
     }
@@ -89,100 +96,76 @@ export default function UpdateProfile() {
   return (
     <div className="chatsContainer">
       {/* الهيدر بنفس روح الـ ConversationsList */}
-      <h3 className="pg-title">Edit Profile</h3>
-      
+      <PageHeader title="Edit Profile" />
+
       <div className="chat-items-container">
         <form onSubmit={handleSubmit} className="profile-form">
-          
-          {/* قسم الأفاتار واختيار الصورة */}
-          <div className="avatar-upload-section">
-            <div className="profile-avatar-container" onClick={triggerFileInput}>
-              {previewUrl ? (
-                <img src={previewUrl} alt="Avatar Preview" className="profile-preview-avatar" />
-              ) : (
-                <div className="avatarPlaceholder large">
-                  {formData.firstName?.charAt(0).toUpperCase()}
-                  {formData.lastName?.charAt(0).toUpperCase()}
-                </div>
-              )}
-              <div className="avatar-overlay">
-                <FaCamera />
-              </div>
-            </div>
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              onChange={handleFileChange} 
-              accept="image/*" 
-              style={{ display: "none" }} 
+          <ProfileAvatar
+            imageUrl={previewUrl}
+            firstName={formData.firstName}
+            lastName={formData.lastName}
+            altText="Avatar Preview"
+            onClick={triggerFileInput}
+          >
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              accept="image/*"
+              style={{ display: "none" }}
             />
             <p className="upload-hint">Click on avatar to change photo</p>
-          </div>
+          </ProfileAvatar>
 
-          {/* رسائل النجاح أو الخطأ */}
-          {message.text && (
-            <div className={`form-message ${message.type}`}>
-              {message.text}
-            </div>
-          )}
+          <FormMessage message={message} />
 
-          {/* حقول الإدخال */}
           <div className="form-group-row">
-            <div className="form-group">
-              <label><FaUser /> First Name</label>
-              <input
-                type="text"
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleChange}
-                required
-              />
-            </div>
+            <LabeledInput
+              icon={<FaUser />}
+              label="First Name"
+              name="firstName"
+              value={formData.firstName}
+              onChange={handleChange}
+              required
+            />
 
-            <div className="form-group">
-              <label><FaUser /> Last Name</label>
-              <input
-                type="text"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleChange}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label><FaAt /> Username</label>
-            <input
-              type="text"
-              name="username"
-              value={formData.username}
+            <LabeledInput
+              icon={<FaUser />}
+              label="Last Name"
+              name="lastName"
+              value={formData.lastName}
               onChange={handleChange}
               required
             />
           </div>
 
-          <div className="form-group">
-            <label><FaEnvelope /> Email Address</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-            />
-          </div>
+          <LabeledInput
+            icon={<FaAt />}
+            label="Username"
+            name="username"
+            value={formData.username}
+            onChange={handleChange}
+            required
+          />
 
-          <div className="form-group">
-            <label><FaUser /> Bio</label>
-            <input
-              type="text"
-              name="bio"
-              value={formData.bio}
-              onChange={handleChange}
-            />
-          </div>
-          {/* زر الحفظ */}
+          <LabeledInput
+            icon={<FaEnvelope />}
+            label="Email Address"
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+          />
+
+          <LabeledInput
+            icon={<FaUser />}
+            label="Bio"
+            name="bio"
+            value={formData.bio}
+            onChange={handleChange}
+          />
+
           <button type="submit" className="save-profile-btn btn-basic" disabled={loading}>
             <FaSave /> {loading ? "Saving Changes..." : "Save Changes"}
           </button>

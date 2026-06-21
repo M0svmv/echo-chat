@@ -14,8 +14,8 @@ import {
 } from "../../../features/chat/chatSlice";
 import "../../../styles/messagesList.css";
 
-import NotSelectedChat from "../../NotSelectedChat";
-import GroupDetails from "../../GroupDetails";
+import NotSelectedChat from "./NotSelectedChat";
+import GroupDetails from "../sideMenu/chats/GroupDetails";
 import MediaPreviewModal from "../../MediaPreviewModal";
 
 import ChatHeader from "./children/ChatHeader";

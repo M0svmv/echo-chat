@@ -1,4 +1,4 @@
-import Navbar from "../components/Navbar";
+import Navbar from "../components/parentComponents/navbar/Navbar";
 import { Outlet } from "react-router-dom";
 import { useSelector } from "react-redux"; // 🌟 استيراد الـ useSelector
 import "../styles/UiLayout.css";

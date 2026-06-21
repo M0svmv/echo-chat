@@ -3,9 +3,9 @@ import { useEffect } from "react";
 // import MessagesList from "../components/MessagesList";
 // import MessageInput from "../components/MessageInput";
 
-import Sidebar from "../components/Sidebar";
+import Sidebar from "../components/parentComponents/sideMenu/Sidebar";
 
-import ChatWindow from "../components/ChatWindow";
+import ChatWindow from "../components/parentComponents/ChatWindow";
 
 import socket from "../socket/socket";
 import { useDispatch, useSelector } from "react-redux";

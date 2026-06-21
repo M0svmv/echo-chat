@@ -4,7 +4,7 @@ import { useDispatch } from "react-redux";
 import { setActiveConversation } from "../../../../features/chat/chatSlice";
 import { IoArrowBack } from "react-icons/io5";
 import { FaCheck } from "react-icons/fa";
-import "../../../styles/chat.css";
+import "../../../../styles/chat.css";
 
 // 👈 مكون الأفتار الذكي لعرض صور المستخدمين أو الحرف الأول
 const MemberAvatar = memo(({ avatar, name }) => {

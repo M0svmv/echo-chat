@@ -3,10 +3,10 @@ import { MdArrowBack } from 'react-icons/md';
 import { IoMdMenu } from "react-icons/io";
 import { Outlet, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from "react-redux"; 
-import { setActiveConversation } from "../features/chat/chatSlice"; 
+import { setActiveConversation } from "../../../features/chat/chatSlice"; 
 // 🌟 استيراد الـ Actions من السلايس الجديدة
-import { toggleMenu, closeMenu } from "../features/ui/uiSlice"; 
-import "../styles/sidebar.css";
+import { toggleMenu, closeMenu } from "../../../features/ui/uiSlice"; 
+import "../../../styles/sidebar.css";
 
 export default function Sidebar() {
   const navigate = useNavigate();
