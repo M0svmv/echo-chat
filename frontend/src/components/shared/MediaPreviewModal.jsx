@@ -1,5 +1,5 @@
 import { useSelector, useDispatch } from "react-redux";
-import { clearMediaPreview } from "../features/chat/chatSlice";
+import { clearMediaPreview } from "../../features/chat/chatSlice";
 import { FiX } from "react-icons/fi";
 
 const MediaPreviewModal = () => {

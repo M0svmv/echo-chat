@@ -1,163 +1,57 @@
 const Message = require("../../../models/message.model");
 const Conversation = require("../../../models/conversation.model");
 const UserPreference = require("../../../models/userPreference.model");
+const messageService = require("../services/message.service");
+const socketUtil = require("../utils/socket.utils");
 
 exports.sendMessage = async (req, res) => {
   try {
-    const io = req.app.get("io");
-    const onlineUsers = req.app.get("onlineUsers");
-
     const senderId = req.user._id;
-    const { conversationId, text,replyTo } = req.body;
+    const { conversationId, text, replyTo } = req.body;
 
     if (!conversationId) return res.status(400).json({ message: "Conversation ID is required" });
 
- 
-    let fileUrl = "";
-    let fileType = "text";
+    const { fileUrl, fileType } = messageService.getFileDetails(req.file);
+    if (!text && !fileUrl) return res.status(400).json({ message: "Cannot send an empty message" });
 
-    if (req.file) {
-      
-      fileUrl = req.file.path; 
-      
-      
-      const mime = req.file.mimetype;
-      if (mime.startsWith("image/")) fileType = "image";
-      else if (mime.startsWith("video/")) fileType = "video";
-      else if (mime.startsWith("audio/")) fileType = "audio"; 
-      else fileType = "file"; 
-    }
-
-   
-    if (!text && !fileUrl) {
-      return res.status(400).json({ message: "Cannot send an empty message" });
-    }
-
-    
     const conversation = await Conversation.findById(conversationId);
     if (!conversation) return res.status(404).json({ message: "Conversation not found" });
 
-    // ==================== [منطق التفرقة في الحظر] ====================
-    if (!conversation.isGroup) {
-      const targetUserId = conversation.participants.find(
-        (id) => id.toString() !== senderId.toString()
-      );
-
-      if (targetUserId) {
-        const iBlockedThem = await UserPreference.findOne({
-          user: senderId,
-          targetUser: targetUserId,
-          type: "block"
-        });
-
-        if (iBlockedThem) {
-          return res.status(403).json({ 
-            message: "You have blocked this user. Unblock them to send messages." 
-          });
-        }
-
-        const theyBlockedMe = await UserPreference.findOne({
-          user: targetUserId,
-          targetUser: senderId,
-          type: "block"
-        });
-
-        if (theyBlockedMe) {
-          return res.status(403).json({ 
-            message: "Cannot send message. This user has blocked you." 
-          });
-        }
+    // فحص الحظر
+    try {
+      await messageService.checkBlockStatus(conversation, senderId);
+    } catch (blockError) {
+      if (blockError.message === "BLOCKED_BY_ME") {
+        return res.status(403).json({ message: "You have blocked this user. Unblock them to send messages." });
+      }
+      if (blockError.message === "BLOCKED_BY_THEM") {
+        return res.status(403).json({ message: "Cannot send message. This user has blocked you." });
       }
     }
-    // =============================================================
 
-    // 1. إنشاء الرسالة أولاً في قاعدة البيانات
-    const newMessage = await Message.create({
-      conversationId,
-      sender: senderId,
-      text: text || "", 
-      fileUrl,
-      fileType,
-      replyTo: replyTo || null
+    // إنشاء الرسالة وتحديث المحادثة
+    const message = await messageService.createMessage({ conversationId, senderId, text, fileUrl, fileType, replyTo });
+    const updatedConversation = await messageService.updateConversationMetadata(conversation, message, senderId);
+
+    // إرسال السوكتس عبر الـ Utility
+    socketUtil.emitToParticipants({
+      req,
+      participants: conversation.participants,
+      eventName: "conversationUpdated",
+      data: { ...updatedConversation.toObject(), hasNewMessage: true }
     });
 
-    
-    const message = await newMessage.populate([
-      { path: "sender", select: "firstName lastName username avatar" },
-      { 
-        path: "replyTo", 
-        populate: { path: "sender", select: "firstName lastName username" } 
-      }
-    ]);
-
-    // 2. تحديث الـ unreadCounts و الـ lastMessage برمجياً وبشكل آمن تماماً
-    // بنلف على كل المشاركين، وأي حد مش هو المرسل بنزود عداده أو ننشأه لو المصفوفة فاضية
-    if (!conversation.unreadCounts) conversation.unreadCounts = [];
-
-    conversation.participants.forEach((participantId) => {
-      if (participantId.toString() !== senderId.toString()) {
-        const userUnread = conversation.unreadCounts.find(
-          (u) => u.user.toString() === participantId.toString()
-        );
-
-        if (userUnread) {
-          userUnread.count += 1; // لو الأوبجكت موجود نزود العداد
-        } else {
-          // لو المصفوفة فاضية أو ملوش أوبجكت، بننشأ أوبجكت جديد بقيمة 1
-          conversation.unreadCounts.push({
-            user: participantId,
-            count: 1
-          });
-        }
-      }
+    socketUtil.emitToParticipants({
+      req,
+      participants: conversation.participants,
+      eventName: "newMessage",
+      data: { ...message.toObject(), conversationId },
+      skipUserId: senderId // الطرف التاني بس اللي يستقبل الـ newMessage
     });
-
-    // تعيين آخر رسالة وتحديث وقت المحادثة لتصعد للأعلى
-    conversation.lastMessage = message._id;
-    conversation.updatedAt = new Date();
-    
-    // حفظ التعديلات الجذرية في قاعدة البيانات
-    await conversation.save();
-
-    // 3. جلب بيانات المحادثة المحدثة كاملة وعمل Populate شامل قبل إرسال السوكت
-    const updatedConversation = await Conversation.findById(conversationId)
-      .populate("participants", "firstName lastName username avatar")
-      .populate("groupAdmin", "firstName lastName username avatar")
-      .populate("unreadCounts.user", "_id") // جلب الـ ID لتطابق شروط الفرونت إيند
-      .populate("pinnedBy", "_id")
-      .populate({
-        path: "lastMessage",
-        populate: {
-          path: "sender",
-          select: "username firstName lastName",
-        },
-      });
-
-    // 4. إرسال الأحداث لايف للمستخدمين عبر السوكت
-    conversation.participants.forEach((participantId) => {
-      const socketId = onlineUsers?.get(participantId.toString());
-      if (socketId) {
-        // إرسال المحادثة والعداد الجديد المحدث من السيرفر
-        io.to(socketId).emit("conversationUpdated", {
-          ...updatedConversation.toObject(),
-          hasNewMessage: true,
-        });
-
-        // إرسال الرسالة الحقيقية للطرف الآخر
-        if (participantId.toString() !== senderId.toString()) {
-          io.to(socketId).emit("newMessage", {
-            ...message.toObject(),
-            conversationId,
-          });
-        }
-      }
-    });
-
-   
 
     return res.status(201).json(message);
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -186,21 +80,19 @@ exports.getMessages = async (req, res) => {
 };
 
 
-exports.editMessage = async (req,res)=>{
-  try{
-    const io = req.app.get('io');
-    const onlineUsers = req.app.get('onlineUsers');
+exports.editMessage = async (req, res) => {
+  try {
     const senderId = req.user._id;
-    const {messageId} = req.params;
-    const {newText} = req.body;
+    const { messageId } = req.params;
+    const { newText } = req.body;
 
-    if(!newText)return res.status(400).json({message:"Text is required"});
+    if (!newText) return res.status(400).json({ message: "Text is required" });
 
     const message = await Message.findById(messageId);
-    if(!message)return res.status(404).json({message:"Message not found"});
+    if (!message) return res.status(404).json({ message: "Message not found" });
 
-    if(message.sender.toString() !== senderId.toString()){
-      return res.status(403).json({message:"You are not authorized to edit this message"});
+    if (message.sender.toString() !== senderId.toString()) {
+      return res.status(403).json({ message: "You are not authorized to edit this message" });
     }
 
     message.text = newText;
@@ -209,34 +101,31 @@ exports.editMessage = async (req,res)=>{
     await message.save();
 
     const conversation = await Conversation.findById(message.conversationId);
-    
-    conversation.participants.forEach((participantId)=>{
-      const socketId = onlineUsers?.get(participantId.toString());
-      if (socketId) {
-        io.to(socketId).emit("messageEdited", {
-          messageId: message._id,
-          conversationId: message.conversationId,
-          newText: message.text,
-          isEdited: true
-        });
+
+    socketUtil.emitToParticipants({
+      req,
+      participants: conversation.participants,
+      eventName: "messageEdited",
+      data: {
+        messageId: message._id,
+        conversationId: message.conversationId,
+        newText: message.text,
+        isEdited: true
       }
-    
     });
 
     return res.status(200).json(message);
-  }catch(err){
-    console.log(err);
-    return res.status(500).json({message:"Internal server error"});
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
 exports.toggleReaction = async (req, res) => {
   try {
-    const io = req.app.get("io");
-    const onlineUsers = req.app.get("onlineUsers");
     const userId = req.user._id;
     const { messageId } = req.params;
-    const { emoji } = req.body; // الإيموجي المختار
+    const { emoji } = req.body;
 
     if (!emoji) return res.status(400).json({ message: "Emoji is required" });
 
@@ -245,47 +134,38 @@ exports.toggleReaction = async (req, res) => {
 
     if (!message.reactions) message.reactions = [];
 
-    // البحث هل للمستخدم تفاعل قديم على هذه الرسالة؟
     const existingReactionIndex = message.reactions.findIndex(
       (r) => r.userId.toString() === userId.toString()
     );
 
     if (existingReactionIndex > -1) {
-      // لو نفس الإيموجي اضغط عليه تاني -> احذفه (Toggle)
       if (message.reactions[existingReactionIndex].emoji === emoji) {
         message.reactions.splice(existingReactionIndex, 1);
       } else {
-        // لو إيموجي مختلف -> حدّث التفاعل بالإيموجي الجديد
         message.reactions[existingReactionIndex].emoji = emoji;
       }
     } else {
-      // تفاعل جديد تماماً للمستخدم
-      message.reactions.push({
-        userId,
-        username: req.user.username,
-        emoji
-      });
+      message.reactions.push({ userId, username: req.user.username, emoji });
     }
 
     await message.save();
 
     const conversation = await Conversation.findById(message.conversationId);
 
-    // إرسال التحديث لايف بالسوكت لجميع أطراف المحادثة لتحديث الـ UI فوراً
-    conversation.participants.forEach((participantId) => {
-      const socketId = onlineUsers?.get(participantId.toString());
-      if (socketId) {
-        io.to(socketId).emit("messageReactionUpdated", {
-          messageId: message._id,
-          conversationId: message.conversationId,
-          reactions: message.reactions
-        });
+    socketUtil.emitToParticipants({
+      req,
+      participants: conversation.participants,
+      eventName: "messageReactionUpdated",
+      data: {
+        messageId: message._id,
+        conversationId: message.conversationId,
+        reactions: message.reactions
       }
     });
 
     return res.status(200).json({ reactions: message.reactions });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -293,25 +173,19 @@ exports.toggleReaction = async (req, res) => {
 
 exports.deleteMessage = async (req, res) => {
   try {
-    const io = req.app.get("io");
-    const onlineUsers = req.app.get("onlineUsers");
     const senderId = req.user._id;
     const { messageId } = req.params;
 
-    // 1. البحث عن الرسالة
     const message = await Message.findById(messageId);
     if (!message) return res.status(404).json({ message: "Message not found" });
 
-    // 2. التحقق من أن المستخدم هو صاحب الرسالة
     if (message.sender.toString() !== senderId.toString()) {
       return res.status(403).json({ message: "You are not authorized to delete this message" });
     }
 
-    // 3. حذف الرسالة من قاعدة البيانات
     const conversationId = message.conversationId;
     await Message.findByIdAndDelete(messageId);
 
-    // 4. تحديث آخر رسالة في المحادثة إذا كانت الرسالة المحذوفة هي الأخيرة
     const conversation = await Conversation.findById(conversationId);
     if (conversation && conversation.lastMessage?.toString() === messageId.toString()) {
       const lastMessage = await Message.findOne({ conversationId }).sort({ createdAt: -1 });
@@ -319,22 +193,18 @@ exports.deleteMessage = async (req, res) => {
       await conversation.save();
     }
 
-    // 5. إرسال حدث الحذف عبر السوكت لجميع المشاركين
     if (conversation) {
-      conversation.participants.forEach((participantId) => {
-        const socketId = onlineUsers?.get(participantId.toString());
-        if (socketId) {
-          io.to(socketId).emit("messageDeleted", {
-            messageId,
-            conversationId
-          });
-        }
+      socketUtil.emitToParticipants({
+        req,
+        participants: conversation.participants,
+        eventName: "messageDeleted",
+        data: { messageId, conversationId }
       });
     }
 
     return res.status(200).json({ message: "Message deleted successfully" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };

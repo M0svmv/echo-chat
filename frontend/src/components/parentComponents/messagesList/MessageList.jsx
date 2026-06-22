@@ -16,7 +16,7 @@ import "../../../styles/messagesList.css";
 
 import NotSelectedChat from "./NotSelectedChat";
 import GroupDetails from "../sideMenu/chats/GroupDetails";
-import MediaPreviewModal from "../../MediaPreviewModal";
+import MediaPreviewModal from "../../shared/MediaPreviewModal";
 
 import ChatHeader from "./children/ChatHeader";
 import MessageSearchBar from "./children/MessageSearchBar";

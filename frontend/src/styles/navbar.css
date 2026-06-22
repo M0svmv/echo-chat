@@ -79,6 +79,8 @@ ul{
 
 .nav-link:hover{
     color: var(--color-tertiary);
+    box-shadow: var(--box-shadow-hover);
+    
 }
 
 .nav-item .active{
