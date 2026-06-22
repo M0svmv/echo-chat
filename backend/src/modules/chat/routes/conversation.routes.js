@@ -16,7 +16,7 @@ router.get("/archive", protect, conversationController.getArchivedConversations)
 
 
 
-router.get("/search", protect, conversationController.searchNewUsers);
+
 
 // group chat
 
