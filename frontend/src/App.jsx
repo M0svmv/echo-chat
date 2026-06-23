@@ -28,6 +28,9 @@ import Profile from './components/parentComponents/sideMenu/profile/Profile.jsx'
 import UpdateProfile from './components/parentComponents/sideMenu/profile/UpdateProfile.jsx';
 import ChangePassword from './components/parentComponents/sideMenu/profile/ChangePassword.jsx';
 
+import {useNotificationPermission} from './components/hooks/useNotificationPermission';
+import {useNotificationSocket} from './components/hooks/useNotificationSocket';
+
 
 function App() {
 
@@ -58,6 +61,9 @@ function App() {
 
     refreshUser();
   }, [dispatch]);
+
+  useNotificationPermission();
+  useNotificationSocket();
 
   return (
     <>
